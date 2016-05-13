@@ -16,25 +16,25 @@
 #define GPS_PACKET_SIZE 200
 
 // Aux print-outs
-#define FATAL(x)		printf("\033[31m\033[1mFATAL:\033[0;0m\t%s\n",x)		
-#define ERROR(x)		printf("\033[33m\033[1mERROR:\033[0;0m\t%s\n",x)
-#define WARN(x)			printf("\033[32m\033[1mWARN:\033[0;0m\t%s\n",x)
-#define INFO(x)			printf("\033[0;0m\033[1mINFO:\033[0;0m\t%s\n",x)
-#define DEBUG(x)		printf("\033[36m\033[1mDEBUG:\033[0;0m\t%s\n",x)
-#define VERBOSE(x)		printf("\033[34m\033[1mVERBOSE:\033[0;0m\t%s\n",x)
+#define FATAL(x)        printf("\033[31m\033[1mFATAL:\033[0;0m\t%s\n",x)
+#define ERROR(x)        printf("\033[33m\033[1mERROR:\033[0;0m\t%s\n",x)
+#define WARN(x)         printf("\033[32m\033[1mWARN:\033[0;0m\t%s\n",x)
+#define INFO(x)         printf("\033[0;0m\033[1mINFO:\033[0;0m\t%s\n",x)
+#define DEBUG(x)        printf("\033[36m\033[1mDEBUG:\033[0;0m\t%s\n",x)
+#define VERBOSE(x)      printf("\033[34m\033[1mVERBOSE:\033[0;0m\t%s\n",x)
 
-#define ERROR2(x,y)		printf("\033[33m\033[1mERROR:\033[0;0m\t%s (%d)\n",x,y)
+#define ERROR2(x,y)     printf("\033[33m\033[1mERROR:\033[0;0m\t%s (%d)\n",x,y)
 
 /* GPS data struct */
 typedef struct gps
 {
-	double status;
-	double p_status;	// TO DO: implement gps_state, gps_p_status, v_status
-	double p[3];
-	double sigma_p[3];
-	double v_status;
-	double v[3];
-	double sigma_v[3];
+    double status;
+    double p_status;    // TO DO: implement gps_state, gps_p_status, v_status
+    double p[3];
+    double sigma_p[3];
+    double v_status;
+    double v[3];
+    double sigma_v[3];
 } gps_t;
 
 /* Function Prototypes */

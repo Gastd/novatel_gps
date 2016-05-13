@@ -56,7 +56,7 @@ int gps_init(char* serial_port)
 
     // Check whether a port was defined, and enforce default value GPS_SERIAL_PORT
     if(serial_port == NULL)
-        serial_port = GPS_SERIAL_PORT;
+        serial_port = (char*)GPS_SERIAL_PORT;
 
     // Init serial port at 9600 bps
     if((err = serialcom_init(&gps_SerialPortConfig, 1, serial_port, 9600)) != SERIALCOM_SUCCESS)
@@ -503,11 +503,12 @@ void gps_configure(char* serial_port)
     
     // Check whether a port was defined, and enforce default value GPS_SERIAL_PORT
     if(serial_port == NULL)
-        serial_port = GPS_SERIAL_PORT;
+        serial_port = (char*)GPS_SERIAL_PORT;
     
     
     // GPS should be configured to 9600 and change to 115200 during execution
     gps_command("COM COM1,115200,N,8,1,N,OFF,ON");
+    gps_command("COM COM2,115200,N,8,1,N,OFF,ON");
     
     if((err = serialcom_close(&gps_SerialPortConfig)) != SERIALCOM_SUCCESS)
     {
@@ -515,7 +516,7 @@ void gps_configure(char* serial_port)
     }
     
     // Reconnecting at 115200 bps
-    if((err = serialcom_init(&gps_SerialPortConfig, 1, GPS_SERIAL_PORT, BPS)) != SERIALCOM_SUCCESS)
+    if((err = serialcom_init(&gps_SerialPortConfig, 1, (char*)GPS_SERIAL_PORT, BPS)) != SERIALCOM_SUCCESS)
     {
         ERROR2("serialcom_init failed", err);
     }
