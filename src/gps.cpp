@@ -47,8 +47,8 @@ SERIALPORTCONFIG gps_SerialPortConfig;
 /* Global variables */
 
 // GPS week
-unsigned long gps_week = 0;
-unsigned long gps_secs = 0;
+unsigned long g_gps_week = 0;
+unsigned long g_gps_secs = 0;
 
 int gps_init(char* serial_port)
 {
@@ -90,14 +90,14 @@ int gps_get_data(gps_t* data)
     unsigned char gps_data[GPS_PACKET_SIZE];
     
     // Multi-byte data
-    unsigned short msg_id, msg_len, /*seq_num,*/ t_week/*, sw_vers*/;
+    unsigned short msg_id, msg_len, t_week;
     unsigned long t_ms, crc_from_packet;
 
     //gps_command("LOG BESTXYZB ONCE");
 
     // Try to sync with IMU and get latest data packet, up to MAX_BYTES read until failure
     for(i = 0; (!data_ready)&&(i < MAX_BYTES); i++)
-    {       
+    {
         // Read data from serial port
         if((err = serialcom_receivebyte(&gps_SerialPortConfig, &data_read, TIMEOUT_US)) != SERIALCOM_SUCCESS)
         {
@@ -530,7 +530,7 @@ void gps_configure(char* serial_port)
     {
         char buf[100];
         
-        sprintf(buf, "SETAPPROXTIME %lu %lu", gps_week, gps_secs);
+        sprintf(buf, "SETAPPROXTIME %lu %lu", g_gps_week, g_gps_secs);
         gps_command(buf);
     }
     
@@ -544,7 +544,7 @@ void gps_command(const char* command)
     int len = strlen(command);
     
     // Echo
-    //printf("\tgps_command: %s\n", command);
+    ROS_INFO("\tgps_command: %s\n", command);
         
     for(i = 0; i < len; i++)
     {
@@ -573,17 +573,17 @@ int gps_get_approx_time()
     time_t cpu_secs;
     
     // Unprocessed GPS time
-    unsigned long int g_time;
+    unsigned long int gps_time;
 
     // Get time
     cpu_secs = time(NULL);
   
     // Offset to GPS time and calculate weeks and seconds
-    g_time = cpu_secs - time_diff;
-    gps_week = g_time / secs_in_week;
-    gps_secs = g_time % secs_in_week;
+    gps_time = cpu_secs - time_diff;
+    g_gps_week = gps_time / secs_in_week;
+    g_gps_secs = gps_time % secs_in_week;
     
-    if((gps_week != 0) && (gps_secs != 0))
+    if((g_gps_week != 0) && (g_gps_secs != 0))
         return 1;
     else
         return 0;
@@ -651,18 +651,18 @@ void gps_print_raw(unsigned char gps_data[], int size)
 {
     int i;
 
-    printf("GPS: ");
+    ROS_INFO("GPS: ");
 
     for(i = 0; i < size; i++)
     {           
-        printf("%02X ", gps_data[i]);
+        ROS_INFO("%02X ", gps_data[i]);
     }
     
-    printf("\n");
+    ROS_INFO("\n");
 }
 
 void gps_print_formatted(gps_t* data)
 {
-    printf("GPS: p(%.3lf %.3lf %.3lf) sp(%.3lf %.3lf %.3lf) v(%.3lf %.3lf %.3lf) sv(%.3lf %.3lf %.3lf) status(%lx %lx)\n",
+    ROS_INFO("GPS: p(%.3lf %.3lf %.3lf) sp(%.3lf %.3lf %.3lf) v(%.3lf %.3lf %.3lf) sv(%.3lf %.3lf %.3lf) status(%lx %lx)\n",
             data->p[0], data->p[1], data->p[2], data->sigma_p[0], data->sigma_p[1], data->sigma_p[2], data->v[0], data->v[1], data->v[2], data->sigma_v[0], data->sigma_v[1], data->sigma_v[2], (long)data->p_status, (long)data->v_status);
 }
