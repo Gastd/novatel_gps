@@ -411,7 +411,8 @@ int gps_get_data(gps_t* data)
                     crc_calculated = CalculateBlockCRC32(b, gps_data);
                     
                     // Compare them to see if valid packet 
-                    if(0/*crc != ByteSwap(CRC)*/)
+                    // if(0/*crc != ByteSwap(CRC)*/)
+                    if(crc_from_packet != ByteSwap(crc_calculated))
                     {
                         ROS_ERROR("CRC does not match (%0lx != %0lx)\n", crc_from_packet, crc_calculated);
                         }
@@ -587,7 +588,7 @@ void gps_time(unsigned char t_status, unsigned short t_week, unsigned long t_ms)
 
 /*************************** CRC functions (Firmware Reference Manual, p.32 + APN-030 Rev 1 Application Note) ***************************/
 
-unsigned long ByteSwap (unsigned long n) 
+inline unsigned long ByteSwap (unsigned long n)
 { 
    return ( ((n &0x000000FF)<<24) + ((n &0x0000FF00)<<8) + ((n &0x00FF0000)>>8) + (( n &0xFF000000)>>24) ); 
 }
@@ -597,7 +598,7 @@ unsigned long ByteSwap (unsigned long n)
 /* --------------------------------------------------------------------------
 Calculate a CRC value to be used by CRC calculation functions.
 -------------------------------------------------------------------------- */
-unsigned long CRC32Value(int i)
+inline unsigned long CRC32Value(int i)
 {
     int j;
     unsigned long ulCRC;
@@ -616,7 +617,7 @@ unsigned long CRC32Value(int i)
 /* --------------------------------------------------------------------------
 Calculates the CRC-32 of a block of data all at once
 -------------------------------------------------------------------------- */
-unsigned long CalculateBlockCRC32
+inline unsigned long CalculateBlockCRC32
 (
     unsigned long ulCount,  /* Number of bytes in the data block */
     unsigned char *ucBuffer /* Data block */
