@@ -11,7 +11,7 @@
 
 #include "gps-bytes.h"
 #include "gps-ids.h"
-#include "ros/ros.h"
+#include "ros/console.h"
 
 // Max size of GPS data packets
 #define GPS_PACKET_SIZE 200

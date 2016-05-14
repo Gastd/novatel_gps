@@ -3,6 +3,7 @@
 // Serial Port Headers (serialcom-termios)
 #include <serialcom.h>
 
+// ROS
 #include <ros/ros.h>
 #include <sensor_msgs/NavSatFix.h>
 #include <sensor_msgs/NavSatStatus.h>
