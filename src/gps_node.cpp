@@ -1,13 +1,4 @@
-// General
-#include <errno.h>
-#include <pthread.h>
 #include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <time.h>
-#include <termios.h>
 
 // Serial Port Headers (serialcom-termios)
 #include <serialcom.h>
@@ -19,13 +10,9 @@
 // Project Headers
 #include "main.h"
 #include "gps.h"
-// pthread period function
-#define TASK_PERIOD_US  (SAMPLING_PERIOD*1000000)
 
-// int gps_ok = 0;
 int gps_ok = 0;
 
-// gps_t gps_values;
 gps_t gps_values;
 
 void setup_sig_handler();
@@ -40,8 +27,6 @@ int main(int argc, char** argv)
     gps_pub = n.advertise<sensor_msgs::NavSatFix>("data", 10);
 
     int gps_new;
-    // Initial messages
-    GPS_IMU("Outdoor robot localization system");
 
     sensor_msgs::NavSatFix nav_msg;
 
@@ -51,8 +36,6 @@ int main(int argc, char** argv)
     // Initialize GPS/gps
     if(!init_all())
         return 1;
-    
-    // timer_start();
     
     // Print out running time and update MAT file every second
     while(ros::ok())
@@ -79,15 +62,10 @@ int main(int argc, char** argv)
         gps_pub.publish(nav_msg);
     }
     
-    // timer_stop();
-    
     // Clean up and close GPS/gps
     if(!close_all())
         return 1;
         
-    // Close timing
-    // timing_close(timer_fp);
-    
     return 0;
 }
 
@@ -95,9 +73,9 @@ int init_all()
 {
     // Initialize and open gps serial port
     if((gps_ok = gps_init((char*)"/dev/ttyUSB0")) != 1)
-        WARN("could not initialize gps!");
+        ROS_WARN("could not initialize gps!");
     else
-        INFO("gps initialized...");
+        ROS_INFO("gps initialized...");
     
     // If nothing is working, fails
     if(!gps_ok)
@@ -110,23 +88,23 @@ int close_all()
 {
     // Clean up and close gps serial port
     if(!gps_close())
-        WARN("Could not close gps!");
+        ROS_WARN("Could not close gps!");
     else
-        INFO("gps closed.");
+        ROS_INFO("gps closed.");
 
-    GPS_IMU("Goodbye!");
+    ROS_INFO("Goodbye!");
     
     return 1;
 }
 
 void sig_handler(int sig)
 {
-    INFO("Interrupted! Closing...");
+    ROS_INFO("Interrupted! Closing...");
     
     // Close everything cleanly before exiting
     if(!close_all())
     {
-        FATAL("could not close cleanly!");
+        ROS_FATAL("could not close cleanly!");
         exit(1);
     }
     
