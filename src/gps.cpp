@@ -61,7 +61,7 @@ int gps_init(char* serial_port)
     // Init serial port at 9600 bps
     if((err = serialcom_init(&gps_SerialPortConfig, 1, serial_port, 9600)) != SERIALCOM_SUCCESS)
     {
-        ERROR2("serialcom_init failed", err);
+        ROS_ERROR_STREAM("serialcom_init failed " << err);
         return 0;
     }
 
@@ -91,7 +91,7 @@ int gps_get_data(gps_t* data)
     
     // Multi-byte data
     unsigned short msg_id, msg_len, /*seq_num,*/ t_week/*, sw_vers*/;
-    unsigned long t_ms, crc;
+    unsigned long t_ms, crc_from_packet;
 
     //gps_command("LOG BESTXYZB ONCE");
 
@@ -101,7 +101,7 @@ int gps_get_data(gps_t* data)
         // Read data from serial port
         if((err = serialcom_receivebyte(&gps_SerialPortConfig, &data_read, TIMEOUT_US)) != SERIALCOM_SUCCESS)
         {
-                ERROR2("serialcom_receivebyte failed", err);
+                ROS_ERROR_STREAM("serialcom_receivebyte failed " << err);
                 continue;
         }
         
@@ -177,7 +177,7 @@ int gps_get_data(gps_t* data)
                         else
                         {
                             // Invalid HDR_LEN, reset
-                            ERROR2("invalid HDR_LEN", data_read);
+                            ROS_ERROR_STREAM("invalid HDR_LEN " << data_read);
                                 b = 0;
                             s = GPS_SYNC_ST;
                         }
@@ -412,18 +412,18 @@ int gps_get_data(gps_t* data)
 
                 if(bb == S_CRC)
                 {       
-                    unsigned long CRC;
+                    unsigned long crc_calculated;
                     
                     // Grab CRC from packet
-                    crc = ((unsigned long)((gps_data[b+3] << 24) | (gps_data[b+2] << 16) | (gps_data[b+1] << 8) | gps_data[b]));
+                    crc_from_packet = ((unsigned long)((gps_data[b+3] << 24) | (gps_data[b+2] << 16) | (gps_data[b+1] << 8) | gps_data[b]));
                     
                     // Calculate CRC from packet (b = packet size)
-                    CRC = CalculateBlockCRC32(b, gps_data);
+                    crc_calculated = CalculateBlockCRC32(b, gps_data);
                     
                     // Compare them to see if valid packet 
                     if(0/*crc != ByteSwap(CRC)*/)
                     {
-                        printf("\033[33m\033[1mERROR\033[0;0m: CRC does not match (%0lx != %0lx)\n", crc, CRC);
+                        ROS_ERROR("CRC does not match (%0lx != %0lx)\n", crc_from_packet, crc_calculated);
                         }
                     else
                     {
@@ -452,7 +452,7 @@ int gps_get_data(gps_t* data)
 void gps_decode(gps_t* data, unsigned char gps_data[], unsigned short msg_id)
 {   
     if(sizeof(double) != 8)
-        ERROR("sizeof(double) != 8, check gps_decode");
+        ROS_ERROR("sizeof(double) != 8, check gps_decode");
     
     if(msg_id == BESTXYZ)
     {           
@@ -461,9 +461,9 @@ void gps_decode(gps_t* data, unsigned char gps_data[], unsigned short msg_id)
         
 
           if((data->p_status == 0)&&(data->v_status == 0))
-                printf("GPS: Solution computed\n");
+                ROS_INFO("GPS: Solution computed\n");
             else
-                printf("GPS: Solution invalid (WRONG VALUES: %ld %ld)\n", (long)data->p_status, (long)data->v_status);
+                ROS_WARN("GPS: Solution invalid (WRONG VALUES: %ld %ld)\n", (long)data->p_status, (long)data->v_status);
  
         
         memcpy((void*)&data->p[0], (void*)&gps_data[BXYZ_PX], sizeof(double));
@@ -490,7 +490,7 @@ int gps_close()
     
     if((err = serialcom_close(&gps_SerialPortConfig)) != SERIALCOM_SUCCESS)
     {
-        ERROR2("serialcom_close failed", err); 
+        ROS_ERROR_STREAM("serialcom_close failed " << err);
         return 0;
     }
     
@@ -512,19 +512,19 @@ void gps_configure(char* serial_port)
     
     if((err = serialcom_close(&gps_SerialPortConfig)) != SERIALCOM_SUCCESS)
     {
-        ERROR2("serialcom_close failed", err);
+        ROS_ERROR_STREAM("serialcom_close failed " << err);
     }
     
     // Reconnecting at 115200 bps
     if((err = serialcom_init(&gps_SerialPortConfig, 1, (char*)GPS_SERIAL_PORT, BPS)) != SERIALCOM_SUCCESS)
     {
-        ERROR2("serialcom_init failed", err);
+        ROS_ERROR_STREAM("serialcom_init failed " << err);
     }
     
     // GPS time should be set approximately
     if(!gps_get_approx_time())
     {
-        ERROR("could not set approximate time");
+        ROS_ERROR("could not set approximate time");
     }
     else
     {
