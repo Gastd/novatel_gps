@@ -17,7 +17,7 @@ inline unsigned long CRC32Value(int i)
     int j;
     unsigned long ulCRC;
     ulCRC = i;
-    
+
     for ( j = 8 ; j > 0; j-- )
     {
         if ( ulCRC & 1 )
@@ -40,7 +40,7 @@ inline unsigned long CalculateBlockCRC32
     unsigned long ulTemp1;
     unsigned long ulTemp2;
     unsigned long ulCRC = 0;
-    
+
     while ( ulCount-- != 0 )
     {
         ulTemp1 = ( ulCRC >> 8 ) & 0x00FFFFFFL;
@@ -48,7 +48,6 @@ inline unsigned long CalculateBlockCRC32
         ucBuffer++;
         ulCRC = ulTemp1 ^ ulTemp2;
     }
-    
     return( ulCRC );
 }
 
@@ -57,7 +56,7 @@ inline unsigned long CalculateBlockCRC32
 
 GPS::GPS() : GPS_PACKET_SIZE(200)
 {
-    serial_port = "/dev/ttyUSB0";
+    serial_port_ = "/dev/ttyUSB0";
     gps_week = 0;
     gps_secs = 0;
 
@@ -114,8 +113,6 @@ GPS::GPS() : GPS_PACKET_SIZE(200)
     velocity_.resize(3);
     sigma_position_.resize(3);
     sigma_velocity_.resize(3);
-
-    init();
 }
 
 GPS::~GPS()
@@ -127,8 +124,11 @@ void GPS::init()
 {
     int err;
 
+    ROS_INFO("Wainting for Receiver's initialization");
+    ros::Duration(10.5).sleep();
+
     // Init serial port at 9600 bps
-    if((err = serialcom_init(&gps_SerialPortConfig, 1, (char*)serial_port.c_str(), OLD_BPS)) != SERIALCOM_SUCCESS)
+    if((err = serialcom_init(&gps_SerialPortConfig, 1, (char*)serial_port_.c_str(), OLD_BPS)) != SERIALCOM_SUCCESS)
     {
         ROS_ERROR_STREAM("serialcom_init failed " << err);
         throwSerialComException(err);
@@ -139,7 +139,30 @@ void GPS::init()
 
     // Request GPS data
     command("LOG BESTXYZB ONTIME 0.05");
-    ROS_INFO("gps initialized...");    
+}
+
+void GPS::init(std::string port)
+{
+    int err;
+
+    ROS_INFO("Wainting to Receiver initialize");
+    ros::Duration(10.5).sleep();
+
+    if(port != std::string())
+        serial_port_ = port;
+
+    // Init serial port at 9600 bps
+    if((err = serialcom_init(&gps_SerialPortConfig, 1, (char*)serial_port_.c_str(), OLD_BPS)) != SERIALCOM_SUCCESS)
+    {
+        ROS_ERROR_STREAM("serialcom_init failed " << err);
+        throwSerialComException(err);
+    }
+
+    // Configure GPS, set baudrate to 115200 bps and reconnect
+    configure();
+
+    // Request GPS data
+    command("LOG BESTXYZB ONTIME 0.05");
 }
 
 int GPS::readDataFromReceiver()
@@ -147,13 +170,13 @@ int GPS::readDataFromReceiver()
     int i;
     int err;
     int data_ready = 0;
-    
+
     // State machine variables
     int b = 0, bb = 0, s = GPS_SYNC_ST;
-    
+
     // Storage for data read from serial port
     unsigned char data_read;
-    
+
     // Multi-byte data
     unsigned short msg_id, msg_len, t_week;
     unsigned long t_ms, crc_from_packet;
@@ -495,7 +518,7 @@ int GPS::readDataFromReceiver()
 }
 
 void GPS::decode(unsigned short msg_id)
-{   
+{
     if(sizeof(double) != 8)
         ROS_ERROR("sizeof(double) != 8, check decode");
 
@@ -524,16 +547,14 @@ void GPS::decode(unsigned short msg_id)
         memcpy((void*)&sigma_velocity_[0], (void*)&gps_data_[BXYZ_sVX], sizeof(double));
         memcpy((void*)&sigma_velocity_[1], (void*)&gps_data_[BXYZ_sVY], sizeof(double));
         memcpy((void*)&sigma_velocity_[2], (void*)&gps_data_[BXYZ_sVZ], sizeof(double));
-        print_formatted();
     }
 }
 
 void GPS::print_formatted()
 {
-    ROS_INFO("GPS: p(%.3lf %.3lf %.3lf) sp(%.3lf %.3lf %.3lf) v(%.3lf %.3lf %.3lf) sv(%.3lf %.3lf %.3lf) status(%lx %lx)\n",
+    ROS_INFO("GPS: p(%.3lf %.3lf %.3lf) sp(%.3lf %.3lf %.3lf) v(%.3lf %.3lf %.3lf) sv(%.3lf %.3lf %.3lf) status(%lx %lx)",
             longitude_, latitude_, altitude_, sigma_position_[0], sigma_position_[1], sigma_position_[2], velocity_[0], velocity_[1], velocity_[2], sigma_velocity_[0], sigma_velocity_[1], sigma_velocity_[2], (long)position_status_, (long)velocity_status_);
 }
-
 
 void GPS::close()
 {
@@ -542,11 +563,9 @@ void GPS::close()
     if((err = serialcom_close(&gps_SerialPortConfig)) != SERIALCOM_SUCCESS)
     {
         ROS_ERROR_STREAM("serialcom_close failed " << err);
-        ROS_WARN("Could not close gps!");
         throwSerialComException(err);
     }
     ROS_INFO("gps closed.");
-    ROS_INFO("Goodbye!");
 }
 
 void GPS::configure()
@@ -564,7 +583,7 @@ void GPS::configure()
     }
 
     // Reconnecting at 115200 bps
-    if((err = serialcom_init(&gps_SerialPortConfig, 1, (char*)serial_port.c_str(), BPS)) != SERIALCOM_SUCCESS)
+    if((err = serialcom_init(&gps_SerialPortConfig, 1, (char*)serial_port_.c_str(), BPS)) != SERIALCOM_SUCCESS)
     {
         ROS_ERROR_STREAM("serialcom_init failed " << err);
         throwSerialComException(err);

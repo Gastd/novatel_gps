@@ -4,51 +4,125 @@
 // ROS
 #include <ros/ros.h>
 #include <sensor_msgs/NavSatFix.h>
-#include <sensor_msgs/NavSatStatus.h>
 
 #include "novatel_gps.h"
+
+class GpsNode
+{
+private:
+    GPS gps;
+    sensor_msgs::NavSatFix gps_reading_;
+
+    std::string port;
+
+    ros::NodeHandle node_handle_;
+    ros::NodeHandle private_node_handle_;
+    ros::Publisher gps_data_pub_;
+    // ros::ServiceServer calibrate_serv_;
+
+    bool running;
+
+    bool autocalibrate_;
+    bool calibrate_requested_;
+    bool calibrated_;
+
+    int error_count_;
+    int slow_count_;
+    std::string was_slow_;
+    std::string error_status_;
+
+    std::string frameid_;
+
+    double desired_freq_;
+
+public:
+    GpsNode(ros::NodeHandle n) : node_handle_(n), private_node_handle_("~"), calibrate_requested_(false),
+    error_count_(0), slow_count_(0), desired_freq_(50)
+    {
+        ros::NodeHandle gps_node_handle(node_handle_, "gps");
+        private_node_handle_.param("port", port, std::string("/dev/ttyUSB0"));
+        private_node_handle_.param("frame_id", frameid_, std::string("gps_frame"));
+
+        gps_data_pub_ = gps_node_handle.advertise<sensor_msgs::NavSatFix>("data", 10);
+
+        // calibrate_serv_ = gps_node_handle.advertiseService("calibrate", &GpsNode::calibrate, this);
+        running = false;
+
+        gps_reading_.header.frame_id = frameid_;
+        gps_reading_.status.service = sensor_msgs::NavSatStatus::SERVICE_GPS;
+
+    }
+
+    void start()
+    {
+        try
+        {
+            gps.init(port);
+            ROS_INFO("GPS initialized...");
+        }
+        catch(const std::exception& e)
+        {
+            ROS_ERROR_STREAM("Exception thrown while starting GPS. This sometimes happens if you are not connected " <<
+                             "to an GPS or if another process is trying to access the GPS port. You may try 'lsof|grep "
+                             << port.c_str() <<
+                             "' to see if other processes have the port open."<< std::endl << e.what());
+            ROS_WARN("Could not start GPS!");
+            std::cerr << e.what() << std::endl;
+            ROS_BREAK();
+        }
+    }
+
+    bool spin()
+    {
+        start();
+        while(ros::ok())
+        {
+            publishData();
+            ros::spinOnce();
+        }
+        stop();
+    }
+
+    void publishData()
+    {
+        getData(gps_reading_);
+        gps_data_pub_.publish(gps_reading_);
+    }
+
+    void getData(sensor_msgs::NavSatFix& nav_data)
+    {
+        gps.receiveDataFromGPS(nav_data);
+        nav_data.header.stamp = ros::Time::now();
+    }
+
+    void stop()
+    {
+        try
+        {
+            gps.close();
+            ROS_INFO("GPS closed.");
+        }
+        catch(const std::exception& e)
+        {
+            ROS_WARN("Could not close GPS!");
+            std::cerr << e.what() << std::endl;
+        }
+        ROS_INFO("Goodbye!");
+    }
+
+    ~GpsNode()
+    {
+        stop();
+    }
+};
 
 int main(int argc, char *argv[])
 {
     ros::init(argc, argv, "novatel_gps");
-    ros::NodeHandle nh("gps");
-    ros::Publisher gps_pub;
+    ros::NodeHandle n;
 
-    GPS gps;
-
-    gps_pub = nh.advertise<sensor_msgs::NavSatFix>("data", 10);
-    sensor_msgs::NavSatFix nav_msg;
-
-    while(ros::ok())
-    {
-        nav_msg.header.stamp = ros::Time::now();
-        nav_msg.header.frame_id = "gps_frame";
-        nav_msg.status.status = sensor_msgs::NavSatStatus::STATUS_NO_FIX;
-        nav_msg.status.service = sensor_msgs::NavSatStatus::SERVICE_GPS;
-
-        gps.receiveDataFromGPS(nav_msg);
-
-        gps_pub.publish(nav_msg);
-
-        // gps_get_data(&gps_values);
-
-        // nav_msg.header.stamp = ros::Time::now();
-        // nav_msg.header.frame_id = "gps_frame";
-        // nav_msg.status.status = sensor_msgs::NavSatStatus::STATUS_NO_FIX;
-        // nav_msg.status.service = sensor_msgs::NavSatStatus::SERVICE_GPS;
-
-        // nav_msg.latitude = gps_values.p[0];
-        // nav_msg.longitude = gps_values.p[1];
-        // nav_msg.altitude = gps_values.p[2];
-
-        // nav_msg.position_covariance[0] = gps_values.sigma_p[0];
-        // nav_msg.position_covariance[4] = gps_values.sigma_p[1];
-        // nav_msg.position_covariance[8] = gps_values.sigma_p[2];
-
-        // nav_msg.position_covariance_type = sensor_msgs::NavSatFix::COVARIANCE_TYPE_DIAGONAL_KNOWN;
-
-        // gps_pub.publish(nav_msg);
-    }
+    GpsNode gpsn(n);
+    gpsn.spin();
 
     return 0;
 }

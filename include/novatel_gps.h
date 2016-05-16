@@ -21,11 +21,13 @@ namespace GPS_DEFINES
     {
     public:
         GPS();
+        void init();
+        void init(std::string port);
+        void close();
         void receiveDataFromGPS(sensor_msgs::NavSatFix&);
         ~GPS();
 
     private:
-        void init();
         int readDataFromReceiver();
         void configure();
         void command(const char* command);
@@ -34,9 +36,8 @@ namespace GPS_DEFINES
         void gtime(unsigned char t_status, unsigned short t_week, unsigned long t_ms);
         void throwSerialComException(int);
         void print_formatted();
-        void close();
 
-        std::string serial_port;
+        std::string serial_port_;
         // GPS data packet
         const int GPS_PACKET_SIZE;
         std::vector<unsigned char> gps_data_;
