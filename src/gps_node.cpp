@@ -27,8 +27,6 @@ int main(int argc, char** argv)
 
     gps_pub = n.advertise<sensor_msgs::NavSatFix>("data", 10);
 
-    int gps_new;
-
     sensor_msgs::NavSatFix nav_msg;
 
     // Signal catching
@@ -41,9 +39,7 @@ int main(int argc, char** argv)
     // Print out running time and update MAT file every second
     while(ros::ok())
     {   
-        printf("gps\n");
-        gps_new = gps_get_data(&gps_values);
-        // gps_print_formatted(&gps_values);
+        gps_get_data(&gps_values);
 
         nav_msg.header.stamp = ros::Time::now();
         nav_msg.header.frame_id = "gps_frame";
