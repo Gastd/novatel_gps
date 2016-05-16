@@ -10,7 +10,7 @@
 // Serial Port Headers (serialcom-termios)
 #include "serialcom.h"
 
-#define GPS_PACKET_SIZE 200
+// #define GPS_PACKET_SIZE 200
 
 namespace GPS_DEFINES
 {
@@ -38,20 +38,20 @@ namespace GPS_DEFINES
 
         std::string serial_port;
         // GPS data packet
-        // std::vector<uchar> gps_data;
-        // static const int GPS_PACKET_SIZE;
-        unsigned char gps_data_[GPS_PACKET_SIZE];
+        const int GPS_PACKET_SIZE;
+        std::vector<unsigned char> gps_data_;
+        // unsigned char gps_data_[GPS_PACKET_SIZE];
 
-        // double status_;
-        // double p_status_;    // TO DO: implement gps_state, gps_p_status, v_status
-        // double v_status_;
-        // double latitude_;
-        // double longitude_;
-        // double altitude_;
-        // std::vector<double> velocity_[3];
-        // // standard deviation provided gps receiver
-        // std::vector<double> sigma_position_[3];
-        // std::vector<double> sigma_velocity_[3];
+        double status_;
+        double position_status_;    // TO DO: implement gps_state, gps_p_status, v_status
+        double velocity_status_;
+        double latitude_;
+        double longitude_;
+        double altitude_;
+        std::vector<double> velocity_;
+        // standard deviation provided gps receiver
+        std::vector<double> sigma_position_;
+        std::vector<double> sigma_velocity_;
 
         enum HEADER_ORDER
         {
@@ -91,13 +91,10 @@ namespace GPS_DEFINES
             GPS_CRC_ST,  //       3
         };
 
-        double status_;
-        double p_status_;    // TO DO: implement gps_state, gps_p_status, v_status
-        double p_[3];
-        double sigma_p_[3];
-        double v_status_;
-        double v_[3];
-        double sigma_v_[3];
+        // double p_[3];
+        // double sigma_p_[3];
+        // double v_[3];
+        // double sigma_v_[3];
 
         // Serial port
         int TIMEOUT_US;

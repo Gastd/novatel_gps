@@ -55,7 +55,7 @@ inline unsigned long CalculateBlockCRC32
 
 // GPS Class methods
 
-GPS::GPS()
+GPS::GPS() : GPS_PACKET_SIZE(200)
 {
     serial_port = "/dev/ttyUSB0";
     gps_week = 0;
@@ -109,6 +109,11 @@ GPS::GPS()
     GPGSA   = 221;
     GPRMC   = 225;
     BESTXYZ = 241;
+
+    gps_data_.resize(GPS_PACKET_SIZE);
+    velocity_.resize(3);
+    sigma_position_.resize(3);
+    sigma_velocity_.resize(3);
 
     init();
 }
@@ -458,10 +463,11 @@ int GPS::readDataFromReceiver()
                     crc_from_packet = ((unsigned long)((gps_data_[b+3] << 24) | (gps_data_[b+2] << 16) | (gps_data_[b+1] << 8) | gps_data_[b]));
                     
                     // Calculate CRC from packet (b = packet size)
-                    crc_calculated = CalculateBlockCRC32(b, gps_data_);
+                    // crc_calculated = CalculateBlockCRC32(b, &gps_data_[0]); // GAMBIARRA
+                    crc_calculated = CalculateBlockCRC32(b, gps_data_.data()); // C++11
                     
                     // Compare them to see if valid packet 
-                    if(0/*crc != ByteSwap(CRC)*/)
+                    if(0)
                     // if(crc_from_packet != ByteSwap(crc_calculated))
                     {
                         ROS_ERROR("CRC does not match (%0lx != %0lx)", crc_from_packet, crc_calculated);
@@ -470,7 +476,7 @@ int GPS::readDataFromReceiver()
                     {
                         decode(msg_id);
                         data_ready = 1;
-                    }                   
+                    }
                         
                     // State transition: Unconditional reset
                     bb = 0;
@@ -495,36 +501,37 @@ void GPS::decode(unsigned short msg_id)
 
     if(msg_id == BESTXYZ)
     {
-        memcpy((void*)&p_status_, (void*)&gps_data_[BXYZ_PSTAT], sizeof(long));
-        memcpy((void*)&v_status_, (void*)&gps_data_[BXYZ_VSTAT], sizeof(long));
+        memcpy((void*)&position_status_, (void*)&gps_data_[BXYZ_PSTAT], sizeof(long));
+        memcpy((void*)&velocity_status_, (void*)&gps_data_[BXYZ_VSTAT], sizeof(long));
 
-        if((p_status_ == 0)&&(v_status_ == 0))
+        if((position_status_ == 0)&&(velocity_status_ == 0))
             ROS_INFO("GPS: Solution computed");
         else
-            ROS_WARN("GPS: Solution invalid (WRONG VALUES: %ld %ld)", (long)p_status_, (long)v_status_);
+            ROS_WARN("GPS: Solution invalid (WRONG VALUES: %ld %ld)", (long)position_status_, (long)velocity_status_);
 
-        memcpy((void*)&p_[0], (void*)&gps_data_[BXYZ_PX], sizeof(double));
-        memcpy((void*)&p_[1], (void*)&gps_data_[BXYZ_PY], sizeof(double));
-        memcpy((void*)&p_[2], (void*)&gps_data_[BXYZ_PZ], sizeof(double));
+        memcpy((void*)&longitude_, (void*)&gps_data_[BXYZ_PX], sizeof(double));
+        memcpy((void*)&latitude_, (void*)&gps_data_[BXYZ_PY], sizeof(double));
+        memcpy((void*)&altitude_, (void*)&gps_data_[BXYZ_PZ], sizeof(double));
 
-        memcpy((void*)&v_[0], (void*)&gps_data_[BXYZ_VX], sizeof(double));
-        memcpy((void*)&v_[1], (void*)&gps_data_[BXYZ_VY], sizeof(double));
-        memcpy((void*)&v_[2], (void*)&gps_data_[BXYZ_VZ], sizeof(double));
+        memcpy((void*)&velocity_[0], (void*)&gps_data_[BXYZ_VX], sizeof(double));
+        memcpy((void*)&velocity_[1], (void*)&gps_data_[BXYZ_VY], sizeof(double));
+        memcpy((void*)&velocity_[2], (void*)&gps_data_[BXYZ_VZ], sizeof(double));
 
-        memcpy((void*)&sigma_p_[0], (void*)&gps_data_[BXYZ_sPX], sizeof(double));
-        memcpy((void*)&sigma_p_[1], (void*)&gps_data_[BXYZ_sPY], sizeof(double));
-        memcpy((void*)&sigma_p_[2], (void*)&gps_data_[BXYZ_sPZ], sizeof(double));
+        memcpy((void*)&sigma_position_[0], (void*)&gps_data_[BXYZ_sPX], sizeof(double));
+        memcpy((void*)&sigma_position_[1], (void*)&gps_data_[BXYZ_sPY], sizeof(double));
+        memcpy((void*)&sigma_position_[2], (void*)&gps_data_[BXYZ_sPZ], sizeof(double));
 
-        memcpy((void*)&sigma_v_[0], (void*)&gps_data_[BXYZ_sVX], sizeof(double));
-        memcpy((void*)&sigma_v_[1], (void*)&gps_data_[BXYZ_sVY], sizeof(double));
-        memcpy((void*)&sigma_v_[2], (void*)&gps_data_[BXYZ_sVZ], sizeof(double));
+        memcpy((void*)&sigma_velocity_[0], (void*)&gps_data_[BXYZ_sVX], sizeof(double));
+        memcpy((void*)&sigma_velocity_[1], (void*)&gps_data_[BXYZ_sVY], sizeof(double));
+        memcpy((void*)&sigma_velocity_[2], (void*)&gps_data_[BXYZ_sVZ], sizeof(double));
+        print_formatted();
     }
 }
 
 void GPS::print_formatted()
 {
     ROS_INFO("GPS: p(%.3lf %.3lf %.3lf) sp(%.3lf %.3lf %.3lf) v(%.3lf %.3lf %.3lf) sv(%.3lf %.3lf %.3lf) status(%lx %lx)\n",
-            p_[0], p_[1], p_[2], sigma_p_[0], sigma_p_[1], sigma_p_[2], v_[0], v_[1], v_[2], sigma_v_[0], sigma_v_[1], sigma_v_[2], (long)p_status_, (long)v_status_);
+            longitude_, latitude_, altitude_, sigma_position_[0], sigma_position_[1], sigma_position_[2], velocity_[0], velocity_[1], velocity_[2], sigma_velocity_[0], sigma_velocity_[1], sigma_velocity_[2], (long)position_status_, (long)velocity_status_);
 }
 
 
@@ -582,13 +589,13 @@ void GPS::configure()
 void GPS::receiveDataFromGPS(sensor_msgs::NavSatFix& output)
 {
     readDataFromReceiver();
-    output.latitude = p_[0];
-    output.longitude = p_[1];
-    output.altitude = p_[2];
+    output.latitude = latitude_;
+    output.longitude = longitude_;
+    output.altitude = altitude_;
 
-    output.position_covariance[0] = sigma_p_[0];
-    output.position_covariance[4] = sigma_p_[1];
-    output.position_covariance[8] = sigma_p_[2];
+    output.position_covariance[0] = sigma_position_[0];
+    output.position_covariance[4] = sigma_position_[1];
+    output.position_covariance[8] = sigma_position_[2];
 
     output.position_covariance_type = sensor_msgs::NavSatFix::COVARIANCE_TYPE_DIAGONAL_KNOWN;
 }
