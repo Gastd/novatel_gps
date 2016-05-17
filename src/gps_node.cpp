@@ -43,7 +43,7 @@ public:
         private_node_handle_.param("port", port, std::string("/dev/ttyUSB0"));
         private_node_handle_.param("frame_id", frameid_, std::string("gps_frame"));
 
-        gps_data_pub_ = gps_node_handle.advertise<sensor_msgs::NavSatFix>("data", 10);
+        gps_data_pub_ = gps_node_handle.advertise<sensor_msgs::NavSatFix>("fix", 10);
 
         // calibrate_serv_ = gps_node_handle.advertiseService("calibrate", &GpsNode::calibrate, this);
         running = false;
@@ -85,14 +85,14 @@ public:
 
     void publishData()
     {
-        getData(gps_reading_);
+        getData();
         gps_data_pub_.publish(gps_reading_);
     }
 
-    void getData(sensor_msgs::NavSatFix& nav_data)
+    void getData()
     {
-        gps.receiveDataFromGPS(nav_data);
-        nav_data.header.stamp = ros::Time::now();
+        gps.receiveDataFromGPS(gps_reading_);
+        gps_reading_.header.stamp = ros::Time::now();
     }
 
     void stop()

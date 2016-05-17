@@ -35,6 +35,8 @@ namespace GPS_DEFINES
         void decode(unsigned short msg_id);
         void gtime(unsigned char t_status, unsigned short t_week, unsigned long t_ms);
         void throwSerialComException(int);
+        void waitReceiveInit();
+        void waitFirstFix();
         void print_formatted();
 
         std::string serial_port_;
@@ -46,11 +48,21 @@ namespace GPS_DEFINES
         double status_;
         double position_status_;    // TO DO: implement gps_state, gps_p_status, v_status
         double velocity_status_;
+        unsigned short solution_status_;
+        unsigned short position_type_;
+        unsigned char number_sat_track_;
+        unsigned char number_sat_sol_;
         double latitude_;
         double longitude_;
         double altitude_;
-        std::vector<double> velocity_;
         // standard deviation provided gps receiver
+        float  stdev_latitude_;
+        double covar_latitude_;
+        float  stdev_longitude_;
+        double covar_longitude_;
+        float  stdev_altitude_;
+        double covar_altitude_;
+        std::vector<double> velocity_;
         std::vector<double> sigma_position_;
         std::vector<double> sigma_velocity_;
 
@@ -92,11 +104,6 @@ namespace GPS_DEFINES
             GPS_CRC_ST,  //       3
         };
 
-        // double p_[3];
-        // double sigma_p_[3];
-        // double v_[3];
-        // double sigma_v_[3];
-
         // Serial port
         int TIMEOUT_US;
         int OLD_BPS;
@@ -114,6 +121,29 @@ namespace GPS_DEFINES
         int D_SYNC2;
         int D_HDR_LEN;
 
+        /* BESTPOS */
+
+        int BESTPOS_SOLSTAT;
+        int BESTPOS_POSTYPE;
+        int BESTPOS_LAT;
+        int BESTPOS_LONG;
+        int BESTPOS_HGT;
+        int BESTPOS_UND;
+        int BESTPOS_DATUMID;
+        int BESTPOS_SLAT;
+        int BESTPOS_SLON;
+        int BESTPOS_SHGT;
+        int BESTPOS_STNID;
+        int BESTPOS_DIFFAGE;
+        int BESTPOS_SOLAGE;
+        int BESTPOS_SV;
+        int BESTPOS_SOLNSV;
+        int BESTPOS_GGL1;
+        int BESTPOS_GGL1L2;
+        int BESTPOS_EXTSOLSTAT;
+        int BESTPOS_SIGMASK;
+
+        /* BESTXYZ */
         int BXYZ_PSTAT;
         int BXYZ_PTYPE;
         int BXYZ_PX;
