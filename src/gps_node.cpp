@@ -91,7 +91,7 @@ public:
 
     void getData()
     {
-        gps.receiveDataFromGPS(gps_reading_);
+        gps.receiveDataFromGPS(&gps_reading_);
         gps_reading_.header.stamp = ros::Time::now();
     }
 

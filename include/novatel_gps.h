@@ -24,7 +24,7 @@ namespace GPS_DEFINES
         void init();
         void init(std::string port);
         void close();
-        void receiveDataFromGPS(sensor_msgs::NavSatFix&);
+        void receiveDataFromGPS(sensor_msgs::NavSatFix*);
         ~GPS();
 
     private:
