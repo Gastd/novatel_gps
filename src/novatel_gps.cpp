@@ -692,17 +692,15 @@ void GPS::receiveDataFromGPS(sensor_msgs::NavSatFix& output)
     output.latitude  = latitude_;
     output.longitude = longitude_;
     output.altitude  = altitude_;
-    // output.latitude = 0.0;
-    // output.longitude = 0.0;
-    // output.altitude = 0.;
 
+    if(!solution_status_)
+        output.status.status = sensor_msgs::NavSatStatus::STATUS_FIX;
+    else
+        output.status.status = sensor_msgs::NavSatStatus::STATUS_NO_FIX;
 
     output.position_covariance[0] = covar_latitude_;
     output.position_covariance[4] = covar_longitude_;
     output.position_covariance[8] = covar_altitude_;
-    // output.position_covariance[0] = 0.;
-    // output.position_covariance[4] = 0.;
-    // output.position_covariance[8] = 0.;
 
     output.position_covariance_type = sensor_msgs::NavSatFix::COVARIANCE_TYPE_DIAGONAL_KNOWN;
 }
