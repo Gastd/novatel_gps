@@ -1,7 +1,7 @@
 <launch>
-    <!-- <arg name="novatel_config_file" default="$(find novatel_gps)/config/gps.yaml"/> -->
+    <arg name="novatel_config_file" default="$(find novatel_gps)/config/gps.yaml"/>
     <node name="gps_driver" pkg="novatel_gps" type="gps_node" >
-        <!-- <rosparam file="$(arg novatel_config_file)" command="load"/> -->
+        <rosparam file="$(arg novatel_config_file)" command="load"/>
     </node>
     <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find novatel_gps)/launch/gps.rviz"/> -->
 </launch>
