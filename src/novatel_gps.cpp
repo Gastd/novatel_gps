@@ -108,6 +108,25 @@ GPS::GPS() : GPS_PACKET_SIZE(200)
     BESTPOS_EXTSOLSTAT  =  (D_HDR_LEN+69);
     BESTPOS_SIGMASK     =  (D_HDR_LEN+71);
 
+    SATXYZ_NSAT         =  (D_HDR_LEN+8);
+    SATXYZ_PRN          =  (D_HDR_LEN+12);
+    SATXYZ_X            =  (D_HDR_LEN+16);
+    SATXYZ_Y            =  (D_HDR_LEN+24);
+    SATXYZ_Z            =  (D_HDR_LEN+32);
+    SATXYZ_CLKCORR      =  (D_HDR_LEN+40);
+    SATXYZ_IONCORR      =  (D_HDR_LEN+48);
+    SATXYZ_TRPCORR      =  (D_HDR_LEN+56);
+
+    TRACKSTAT_SOLSTAT   = (D_HDR_LEN);
+    TRACKSTAT_POSTYPE   = (D_HDR_LEN+4);
+    TRACKSTAT_CUTOFF    = (D_HDR_LEN+8);
+    TRACKSTAT_CHAN      = (D_HDR_LEN+12);
+    TRACKSTAT_PRN       = (D_HDR_LEN+16);
+    TRACKSTAT_TRK_STAT  = (D_HDR_LEN+20);
+    TRACKSTAT_PSR       = (D_HDR_LEN+24);
+    TRACKSTAT_DOPPLER   = (D_HDR_LEN+32);
+    TRACKSTAT_CN0       = (D_HDR_LEN+36);
+
     S_MSG_ID     = 2;
     S_MSG_LEN    = 2;
     S_SEQ_NUM    = 2;
@@ -128,6 +147,8 @@ GPS::GPS() : GPS_PACKET_SIZE(200)
     GPGSA   = 221;
     GPRMC   = 225;
     BESTXYZ = 241;
+    SATXYZ  = 270;
+    TRACKSTAT = 83;
 
     gps_data_.resize(GPS_PACKET_SIZE);
     velocity_.resize(3);
@@ -250,7 +271,7 @@ int GPS::readDataFromReceiver()
         // Read data from serial port
         if((err = serialcom_receivebyte(&gps_SerialPortConfig, &data_read, TIMEOUT_US)) != SERIALCOM_SUCCESS)
         {
-                ROS_ERROR_STREAM("serialcom_receivebyte failed " << err);
+                // ROS_ERROR_STREAM("serialcom_receivebyte failed " << err);
                 continue;
         }
         
@@ -322,7 +343,7 @@ int GPS::readDataFromReceiver()
                         else
                         {
                             // Invalid HDR_LEN, reset
-                            ROS_ERROR_STREAM("invalid HDR_LEN " << data_read);
+                            // ROS_ERROR_STREAM("invalid HDR_LEN " << data_read);
                             b = 0;
                             s = GPS_SYNC_ST;
                         }
@@ -554,7 +575,7 @@ int GPS::readDataFromReceiver()
                     if(0)
                     // if(crc_from_packet != ByteSwap(crc_calculated))
                     {
-                        ROS_ERROR("CRC does not match (%0lx != %0lx)", crc_from_packet, crc_calculated);
+                        // ROS_ERROR("CRC does not match (%0lx != %0lx)", crc_from_packet, crc_calculated);
                     }
                     else
                     {
@@ -581,7 +602,7 @@ int GPS::readDataFromReceiver()
 void GPS::decode(unsigned short msg_id)
 {
     if(sizeof(double) != 8)
-        ROS_ERROR("sizeof(double) != 8, check decode");
+        // ROS_ERROR("sizeof(double) != 8, check decode");
 
     if(msg_id == BESTXYZ)
     {
@@ -605,7 +626,7 @@ void GPS::decode(unsigned short msg_id)
         memcpy((void*)&sigma_velocity_[2], (void*)&gps_data_[BXYZ_sVZ], sizeof(double));
         // print_formatted();
     }
-    if(msg_id == BESTPOS)
+    else if(msg_id == BESTPOS)
     {
         memcpy((void*)&solution_status_, (void*)&gps_data_[BESTPOS_SOLSTAT], sizeof(unsigned short));
         memcpy((void*)&position_type_, (void*)&gps_data_[BESTPOS_POSTYPE], sizeof(unsigned short));
@@ -627,6 +648,32 @@ void GPS::decode(unsigned short msg_id)
         covar_latitude_ = stdev_latitude_ * stdev_latitude_;
         covar_longitude_ = stdev_longitude_ * stdev_longitude_;
         covar_altitude_ = stdev_altitude_ * stdev_altitude_;
+    }
+    else if(msg_id == SATXYZ)
+    {
+        memcpy((void*)&number_satellites_, (void*)&gps_data_[SATXYZ_NSAT], sizeof(unsigned long));
+        memcpy((void*)&gps_prn_, (void*)&gps_data_[SATXYZ_PRN], sizeof(unsigned long));
+
+        memcpy((void*)&x_, (void*)&gps_data_[SATXYZ_X], sizeof(double));
+        memcpy((void*)&y_, (void*)&gps_data_[SATXYZ_Y], sizeof(double));
+        memcpy((void*)&z_, (void*)&gps_data_[SATXYZ_Z], sizeof(double));
+
+        memcpy((void*)&clk_correction_, (void*)&gps_data_[SATXYZ_CLKCORR], sizeof(double));
+        memcpy((void*)&ion_correction_, (void*)&gps_data_[SATXYZ_IONCORR], sizeof(double));
+        memcpy((void*)&trp_correction_, (void*)&gps_data_[SATXYZ_TRPCORR], sizeof(double));
+    }
+    else if(msg_id == TRACKSTAT)
+    {
+        memcpy((void*)&solution_status_, (void*)&gps_data_[TRACKSTAT_SOLSTAT], sizeof(unsigned short));
+        memcpy((void*)&position_type_, (void*)&gps_data_[TRACKSTAT_POSTYPE], sizeof(unsigned short));
+        memcpy((void*)&cutoff_, (void*)&gps_data_[TRACKSTAT_CUTOFF], sizeof(float));
+        memcpy((void*)&channels_, (void*)&gps_data_[TRACKSTAT_CHAN], sizeof(long));
+
+        memcpy((void*)&prn_, (void*)&gps_data_[TRACKSTAT_PRN], sizeof(short));
+        memcpy((void*)&trk_stat_, (void*)&gps_data_[TRACKSTAT_TRK_STAT], sizeof(unsigned long));
+        memcpy((void*)&psr_, (void*)&gps_data_[TRACKSTAT_PSR], sizeof(double));
+        memcpy((void*)&doppler_, (void*)&gps_data_[TRACKSTAT_DOPPLER], sizeof(float));
+        memcpy((void*)&CN0, (void*)&gps_data_[TRACKSTAT_CN0], sizeof(float));
     }
 }
 

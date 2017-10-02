@@ -66,6 +66,23 @@ namespace GPS_DEFINES
         std::vector<double> sigma_position_;
         std::vector<double> sigma_velocity_;
 
+        unsigned long number_satellites_;
+        unsigned long gps_prn_;
+        double x_;
+        double y_;
+        double z_;
+        double clk_correction_;
+        double ion_correction_;
+        double trp_correction_;
+
+        float cutoff_;
+        long channels_;
+        short prn_;
+        unsigned long trk_stat_;
+        double psr_;
+        float doppler_;
+        float CN0;
+
         enum HEADER_ORDER
         {
             // Header byte order/format
@@ -94,6 +111,8 @@ namespace GPS_DEFINES
         int GPGSA;
         int GPRMC;
         int BESTXYZ;
+        int SATXYZ;
+        int TRACKSTAT;
 
         enum STATES
         {
@@ -122,7 +141,6 @@ namespace GPS_DEFINES
         int D_HDR_LEN;
 
         /* BESTPOS */
-
         int BESTPOS_SOLSTAT;
         int BESTPOS_POSTYPE;
         int BESTPOS_LAT;
@@ -166,6 +184,27 @@ namespace GPS_DEFINES
         int BXYZ_SOLAGE;
         int BXYZ_SV;
         int BXYZ_SOLSV;
+
+        /* SATXYZ */
+        int SATXYZ_NSAT;
+        int SATXYZ_PRN;
+        int SATXYZ_X;
+        int SATXYZ_Y;
+        int SATXYZ_Z;
+        int SATXYZ_CLKCORR;
+        int SATXYZ_IONCORR;
+        int SATXYZ_TRPCORR;
+
+        /* TRACKSTAT */
+        int TRACKSTAT_SOLSTAT;
+        int TRACKSTAT_POSTYPE;
+        int TRACKSTAT_CUTOFF;
+        int TRACKSTAT_CHAN;
+        int TRACKSTAT_PRN;
+        int TRACKSTAT_TRK_STAT;
+        int TRACKSTAT_PSR;
+        int TRACKSTAT_DOPPLER;
+        int TRACKSTAT_CN0;
 
         // Multi-byte sizes
         int S_MSG_ID;
