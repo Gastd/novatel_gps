@@ -65,6 +65,7 @@ GPS::GPS() : GPS_PACKET_SIZE(200)
     D_SYNC2 = 0x12;
     D_HDR_LEN = 28;
 
+    // TODO: Where did these values come from?
     BXYZ_PSTAT    = (D_HDR_LEN);
     BXYZ_PTYPE    = (D_HDR_LEN+4);
     BXYZ_PX       = (D_HDR_LEN+8);
@@ -142,14 +143,6 @@ GPS::GPS() : GPS_PACKET_SIZE(200)
     BPS        = 115200;
     MAX_BYTES  = 500;
 
-    BESTPOS = 42;
-    GPGGA   = 218;
-    GPGSA   = 221;
-    GPRMC   = 225;
-    BESTXYZ = 241;
-    SATXYZ  = 270;
-    TRACKSTAT = 83;
-
     gps_data_.resize(GPS_PACKET_SIZE);
     velocity_.resize(3);
     sigma_position_.resize(3);
@@ -171,7 +164,7 @@ GPS::~GPS()
     close();
 }
 
-void GPS::init()
+void GPS::init(int log_id)
 {
     int err;
 
@@ -188,13 +181,18 @@ void GPS::init()
     configure();
 
     // Request GPS data
-    // command("LOG BESTXYZB ONTIME 0.05");
-    command("LOG BESTPOSB ONTIME 0.05");
+    if(log_id == BESTPOS)
+        command("LOG BESTPOSB ONTIME 0.05");
+    if(log_id == BESTXYZ)
+        command("LOG BESTXYZB ONTIME 0.05");
+    if(log_id == TRACKSTAT)
+        command("LOG TRACKSTATB ONTIME 1");
+    
 
     waitFirstFix();
 }
 
-void GPS::init(std::string port)
+void GPS::init(int log_id, std::string port)
 {
     int err;
 
@@ -214,8 +212,12 @@ void GPS::init(std::string port)
     configure();
 
     // Request GPS data
-    // command("LOG BESTXYZB ONTIME 0.05");
-    command("LOG BESTPOSB ONTIME 0.05");
+    if(log_id == BESTPOS)
+        command("LOG BESTPOSB ONTIME 0.05");
+    if(log_id == BESTXYZ)
+        command("LOG BESTXYZB ONTIME 0.05");
+    if(log_id == TRACKSTAT)
+        command("LOG TRACKSTATB ONTIME 1");
 
     waitFirstFix();
 }
@@ -271,7 +273,7 @@ int GPS::readDataFromReceiver()
         // Read data from serial port
         if((err = serialcom_receivebyte(&gps_SerialPortConfig, &data_read, TIMEOUT_US)) != SERIALCOM_SUCCESS)
         {
-                // ROS_ERROR_STREAM("serialcom_receivebyte failed " << err);
+                ROS_ERROR_STREAM("serialcom_receivebyte failed " << err);
                 continue;
         }
         
@@ -343,7 +345,7 @@ int GPS::readDataFromReceiver()
                         else
                         {
                             // Invalid HDR_LEN, reset
-                            // ROS_ERROR_STREAM("invalid HDR_LEN " << data_read);
+                            ROS_ERROR_STREAM("invalid HDR_LEN " << data_read);
                             b = 0;
                             s = GPS_SYNC_ST;
                         }
@@ -575,10 +577,10 @@ int GPS::readDataFromReceiver()
                     if(0)
                     // if(crc_from_packet != ByteSwap(crc_calculated))
                     {
-                        // ROS_ERROR("CRC does not match (%0lx != %0lx)", crc_from_packet, crc_calculated);
                     }
                     else
                     {
+                        ROS_ERROR("CRC does not match (%0lx != %0lx)", crc_from_packet, crc_calculated);
                         decode(msg_id);
                         data_ready = 1;
                     }
@@ -601,17 +603,17 @@ int GPS::readDataFromReceiver()
 
 void GPS::decode(unsigned short msg_id)
 {
+    ROS_INFO("Message ID = %d", msg_id);
     if(sizeof(double) != 8)
-        // ROS_ERROR("sizeof(double) != 8, check decode");
-
+        ROS_FATAL("sizeof(double) != 8, check decode");
     if(msg_id == BESTXYZ)
     {
         memcpy((void*)&position_status_, (void*)&gps_data_[BXYZ_PSTAT], sizeof(long));
         memcpy((void*)&velocity_status_, (void*)&gps_data_[BXYZ_VSTAT], sizeof(long));
 
-        memcpy((void*)&latitude_, (void*)&gps_data_[BXYZ_PX], sizeof(double));
-        memcpy((void*)&longitude_, (void*)&gps_data_[BXYZ_PY], sizeof(double));
-        memcpy((void*)&altitude_, (void*)&gps_data_[BXYZ_PZ], sizeof(double));
+        memcpy((void*)&x_, (void*)&gps_data_[BXYZ_PX], sizeof(double));
+        memcpy((void*)&y_, (void*)&gps_data_[BXYZ_PY], sizeof(double));
+        memcpy((void*)&z_, (void*)&gps_data_[BXYZ_PZ], sizeof(double));
 
         memcpy((void*)&velocity_[0], (void*)&gps_data_[BXYZ_VX], sizeof(double));
         memcpy((void*)&velocity_[1], (void*)&gps_data_[BXYZ_VY], sizeof(double));
@@ -626,7 +628,7 @@ void GPS::decode(unsigned short msg_id)
         memcpy((void*)&sigma_velocity_[2], (void*)&gps_data_[BXYZ_sVZ], sizeof(double));
         // print_formatted();
     }
-    else if(msg_id == BESTPOS)
+    if(msg_id == BESTPOS)
     {
         memcpy((void*)&solution_status_, (void*)&gps_data_[BESTPOS_SOLSTAT], sizeof(unsigned short));
         memcpy((void*)&position_type_, (void*)&gps_data_[BESTPOS_POSTYPE], sizeof(unsigned short));
@@ -642,14 +644,14 @@ void GPS::decode(unsigned short msg_id)
         memcpy((void*)&number_sat_track_,(void*)&gps_data_[BESTPOS_SV],sizeof(unsigned char));
         memcpy((void*)&number_sat_sol_,(void*)&gps_data_[BESTPOS_SOLNSV],sizeof(unsigned char));
 
-        ROS_DEBUG("Solution Status = %d", solution_status_);
-        ROS_DEBUG("Sat = %d", number_sat_track_);
-        ROS_DEBUG("Sat sol = %d", number_sat_sol_);
+        ROS_INFO("Solution Status = %d", solution_status_);
+        ROS_INFO("Sat = %d", number_sat_track_);
+        ROS_INFO("Sat sol = %d", number_sat_sol_);
         covar_latitude_ = stdev_latitude_ * stdev_latitude_;
         covar_longitude_ = stdev_longitude_ * stdev_longitude_;
         covar_altitude_ = stdev_altitude_ * stdev_altitude_;
     }
-    else if(msg_id == SATXYZ)
+    if(msg_id == SATXYZ)
     {
         memcpy((void*)&number_satellites_, (void*)&gps_data_[SATXYZ_NSAT], sizeof(unsigned long));
         memcpy((void*)&gps_prn_, (void*)&gps_data_[SATXYZ_PRN], sizeof(unsigned long));
@@ -662,7 +664,7 @@ void GPS::decode(unsigned short msg_id)
         memcpy((void*)&ion_correction_, (void*)&gps_data_[SATXYZ_IONCORR], sizeof(double));
         memcpy((void*)&trp_correction_, (void*)&gps_data_[SATXYZ_TRPCORR], sizeof(double));
     }
-    else if(msg_id == TRACKSTAT)
+    if(msg_id == TRACKSTAT)
     {
         memcpy((void*)&solution_status_, (void*)&gps_data_[TRACKSTAT_SOLSTAT], sizeof(unsigned short));
         memcpy((void*)&position_type_, (void*)&gps_data_[TRACKSTAT_POSTYPE], sizeof(unsigned short));
@@ -673,8 +675,39 @@ void GPS::decode(unsigned short msg_id)
         memcpy((void*)&trk_stat_, (void*)&gps_data_[TRACKSTAT_TRK_STAT], sizeof(unsigned long));
         memcpy((void*)&psr_, (void*)&gps_data_[TRACKSTAT_PSR], sizeof(double));
         memcpy((void*)&doppler_, (void*)&gps_data_[TRACKSTAT_DOPPLER], sizeof(float));
-        memcpy((void*)&CN0, (void*)&gps_data_[TRACKSTAT_CN0], sizeof(float));
+        memcpy((void*)&CN0_, (void*)&gps_data_[TRACKSTAT_CN0], sizeof(float));
+    
+        ROS_INFO("Solution Status = %d", solution_status_);
+        ROS_INFO("Position Type = %d", position_type_);
+        ROS_INFO("Channels = %ld", channels_);
+
+        ROS_INFO("Satellite: %d", prn_);
+        ROS_INFO("with Pseudorange: %f", psr_);
+        ROS_INFO("with Doppler: %f", doppler_);
+        ROS_INFO("with Carrier to Noise Ratio: %f", CN0_);
     }
+    // if(msg_id == TRACKSTAT)
+    // {
+    //     memcpy((void*)&solution_status_, (void*)&gps_data_[TRACKSTAT_SOLSTAT], sizeof(unsigned short));
+    //     memcpy((void*)&position_type_, (void*)&gps_data_[TRACKSTAT_POSTYPE], sizeof(unsigned short));
+    //     memcpy((void*)&cutoff_, (void*)&gps_data_[TRACKSTAT_CUTOFF], sizeof(float));
+    //     memcpy((void*)&channels_, (void*)&gps_data_[TRACKSTAT_CHAN], sizeof(long));
+
+    //     memcpy((void*)&prn_, (void*)&gps_data_[TRACKSTAT_PRN], sizeof(short));
+    //     memcpy((void*)&trk_stat_, (void*)&gps_data_[TRACKSTAT_TRK_STAT], sizeof(unsigned long));
+    //     memcpy((void*)&psr_, (void*)&gps_data_[TRACKSTAT_PSR], sizeof(double));
+    //     memcpy((void*)&doppler_, (void*)&gps_data_[TRACKSTAT_DOPPLER], sizeof(float));
+    //     memcpy((void*)&CN0_, (void*)&gps_data_[TRACKSTAT_CN0], sizeof(float));
+    
+    //     ROS_INFO("Solution Status = %d", solution_status_);
+    //     ROS_INFO("Position Type = %d", position_type_);
+    //     ROS_INFO("Channels = %ld", channels_);
+
+    //     ROS_INFO("Satellite: %d", prn_);
+    //     ROS_INFO("with Pseudorange: %f", psr_);
+    //     ROS_INFO("with Doppler: %f", doppler_);
+    //     ROS_INFO("with Carrier to Noise Ratio: %f", CN0_);
+    // }
 }
 
 void GPS::print_formatted()
@@ -733,7 +766,7 @@ void GPS::configure()
     // command("SETAPPROXPOS -15.791372 -48.0227546 1178");
 }
 
-void GPS::receiveDataFromGPS(sensor_msgs::NavSatFix* output)
+void GPS::receiveDataFromGPS(sensor_msgs::NavSatFix *output)
 {
     readDataFromReceiver();
     output->latitude  = latitude_;
@@ -750,6 +783,18 @@ void GPS::receiveDataFromGPS(sensor_msgs::NavSatFix* output)
     output->position_covariance[8] = covar_altitude_;
 
     output->position_covariance_type = sensor_msgs::NavSatFix::COVARIANCE_TYPE_DIAGONAL_KNOWN;
+}
+
+void GPS::receiveDataFromGPS(novatel_gps::GpsXYZ *output)
+{
+    readDataFromReceiver();
+    output->position.x = x_;
+    output->position.y = y_;
+    output->position.z = z_;
+
+    output->velocity.linear.x = velocity_[0];
+    output->velocity.linear.y = velocity_[1];
+    output->velocity.linear.z = velocity_[2];
 }
 
 

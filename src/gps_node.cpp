@@ -4,6 +4,7 @@
 // ROS
 #include <ros/ros.h>
 #include <sensor_msgs/NavSatFix.h>
+#include <novatel_gps/GpsXYZ.h>
 
 #include "novatel_gps.h"
 
@@ -12,6 +13,7 @@ class GpsNode
 private:
     GPS gps;
     sensor_msgs::NavSatFix gps_reading_;
+    novatel_gps::GpsXYZ gps_xyz_reading_;
 
     std::string port;
 
@@ -31,6 +33,8 @@ private:
     std::string was_slow_;
     std::string error_status_;
 
+    int log_id_; 
+
     std::string frameid_;
 
     double desired_freq_;
@@ -42,22 +46,33 @@ public:
         ros::NodeHandle gps_node_handle(node_handle_, "gps");
         private_node_handle_.param("port", port, std::string("/dev/ttyUSB0"));
         private_node_handle_.param("frame_id", frameid_, std::string("gps_frame"));
+        // TODO: Remove magical number.
+        private_node_handle_.param("log", log_id_, gps.BESTXYZ);
 
-        gps_data_pub_ = gps_node_handle.advertise<sensor_msgs::NavSatFix>("fix", 10);
+        if(log_id_ == gps.BESTPOS)
+        {
+            // init the publisher
+            gps_data_pub_ = gps_node_handle.advertise<sensor_msgs::NavSatFix>("fix", 10);
+        
+            // init the message
+            gps_reading_.header.frame_id = frameid_;
+            gps_reading_.status.service = sensor_msgs::NavSatStatus::SERVICE_GPS;
+        }
+        if(log_id_ == gps.BESTXYZ)
+        {
+            // init the publisher
+            gps_data_pub_ = gps_node_handle.advertise<novatel_gps::GpsXYZ>("gps_cart", 10);
+        }
 
         // calibrate_serv_ = gps_node_handle.advertiseService("calibrate", &GpsNode::calibrate, this);
         running = false;
-
-        gps_reading_.header.frame_id = frameid_;
-        gps_reading_.status.service = sensor_msgs::NavSatStatus::SERVICE_GPS;
-
     }
 
     void start()
     {
         try
         {
-            gps.init(port);
+            gps.init(log_id_, port);
             ROS_INFO("GPS initialized...");
         }
         catch(const std::exception& e)
@@ -91,8 +106,15 @@ public:
 
     void getData()
     {
-        gps.receiveDataFromGPS(&gps_reading_);
-        gps_reading_.header.stamp = ros::Time::now();
+        if(log_id_ == gps.BESTPOS)
+        {
+            gps.receiveDataFromGPS(&gps_reading_);
+            gps_reading_.header.stamp = ros::Time::now();
+        }
+        if(log_id_ == gps.BESTXYZ)
+        {
+            gps.receiveDataFromGPS(&gps_xyz_reading_);
+        }
     }
 
     void stop()

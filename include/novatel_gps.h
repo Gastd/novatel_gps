@@ -6,6 +6,8 @@
 
 #include "ros/ros.h"
 #include "sensor_msgs/NavSatFix.h"
+#include "novatel_gps/GpsXYZ.h"
+
 
 // Serial Port Headers (serialcom-termios)
 #include "serialcom.h"
@@ -21,10 +23,11 @@ namespace GPS_DEFINES
     {
     public:
         GPS();
-        void init();
-        void init(std::string port);
+        void init(int log_id);
+        void init(int log_id, std::string port);
         void close();
         void receiveDataFromGPS(sensor_msgs::NavSatFix*);
+        void receiveDataFromGPS(novatel_gps::GpsXYZ*);
         ~GPS();
 
         /* Log Message IDs */
