@@ -18,6 +18,8 @@ generate_messages(
   geometry_msgs
 )
 
+add_definitions(-std=c++11 -g)
+
 ###################################
 ## catkin specific configuration ##
 ###################################
