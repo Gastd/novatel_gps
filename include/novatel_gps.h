@@ -8,17 +8,9 @@
 #include "sensor_msgs/NavSatFix.h"
 #include "novatel_gps/GpsXYZ.h"
 
-
 // Serial Port Headers (serialcom-termios)
 #include "serialcom.h"
 
-// #define GPS_PACKET_SIZE 200
-
-namespace GPS_DEFINES
-{
-} // GPS_DEFINES
-
-// namespace novatel_gps {
     class GPS
     {
     public:
@@ -221,9 +213,5 @@ namespace GPS_DEFINES
         int S_SW_VERS;
         int S_CRC;
     };
-// } // novatel_gps
-
-// typedef ulong ulong;
-// typedef uchar uchar;
 
 #endif // NOVATEL_GPS_H
