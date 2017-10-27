@@ -188,7 +188,6 @@ void GPS::init(int log_id)
     if(log_id == TRACKSTAT)
         command("LOG TRACKSTATB ONTIME 1");
     
-
     waitFirstFix();
 }
 
@@ -792,9 +791,9 @@ void GPS::receiveDataFromGPS(novatel_gps::GpsXYZ *output)
     output->position.y = y_;
     output->position.z = z_;
 
-    output->velocity.linear.x = velocity_[0];
-    output->velocity.linear.y = velocity_[1];
-    output->velocity.linear.z = velocity_[2];
+    output->velocity.x = velocity_[0];
+    output->velocity.y = velocity_[1];
+    output->velocity.z = velocity_[2];
 }
 
 
