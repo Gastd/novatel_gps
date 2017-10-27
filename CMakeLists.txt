@@ -2,9 +2,20 @@ cmake_minimum_required(VERSION 2.8.3)
 project(novatel_gps)
 
 find_package(catkin REQUIRED COMPONENTS
-  geometry_msgs
   roscpp
   sensor_msgs
+  geometry_msgs
+  message_generation
+)
+
+add_message_files(
+  FILES
+  GpsXYZ.msg
+)
+
+generate_messages(
+  DEPENDENCIES
+  geometry_msgs
 )
 
 ###################################
@@ -13,7 +24,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
  INCLUDE_DIRS include
 #  LIBRARIES novatel_gps
- CATKIN_DEPENDS geometry_msgs roscpp sensor_msgs
+ CATKIN_DEPENDS geometry_msgs roscpp sensor_msgs message_runtime
 #  DEPENDS system_lib
 )
 
