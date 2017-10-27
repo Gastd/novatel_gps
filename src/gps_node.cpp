@@ -33,7 +33,7 @@ private:
     std::string was_slow_;
     std::string error_status_;
 
-    int log_id_; 
+    int log_id_;
 
     std::string frameid_;
 
