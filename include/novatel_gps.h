@@ -81,28 +81,28 @@ namespace GPS_DEFINES
         unsigned long trk_stat_;
         double psr_;
         float doppler_;
-        float CN0;
+        float CN0_;
 
         enum HEADER_ORDER
         {
             // Header byte order/format
-            SYNC0,         //     0   char
-            SYNC1,         //     1   char
-            SYNC2,         //     2   char
-            HDR_LEN,       //     3   uchar
-            MSG_ID,        //     4   ushort
-            MSG_TYPE=6,    //     6   char
-            PORT_ADDR,     //     7   uchar
-            MSG_LEN,       //     8   ushort
-            SEQ_NUM=10,    //     10  ushort
-            IDLE_T=12,     //     12  uchar
-            T_STATUS,      //     13  enum
-            T_WEEK,        //     14  ushort
-            T_MS=16,       //     16  GPSec (ulong)
-            GPS_STATUS=20, //     20  ulong
-            RESERVED=24,   //     24  ushort
-            SW_VERS=26,    //     26  ushort
-            DATA=28,       //     28  variable
+            SYNC0,          //     0   char
+            SYNC1,          //     1   char
+            SYNC2,          //     2   char
+            HDR_LEN,        //     3   uchar
+            MSG_ID,         //     4   ushort
+            MSG_TYPE = 6,   //     6   char
+            PORT_ADDR,      //     7   uchar
+            MSG_LEN,        //     8   ushort
+            SEQ_NUM = 10,   //     10  ushort
+            IDLE_T = 12,    //     12  uchar
+            T_STATUS,       //     13  enum
+            T_WEEK,         //     14  ushort
+            T_MS = 16,      //     16  GPSec (ulong)
+            GPS_STATUS = 20,//     20  ulong
+            RESERVED = 24,  //     24  ushort
+            SW_VERS = 26,   //     26  ushort
+            DATA = 28,      //     28  variable
         };
 
         /* Log Message IDs */
@@ -117,10 +117,10 @@ namespace GPS_DEFINES
         enum STATES
         {
             // GPS States
-            GPS_SYNC_ST,  //      0
-            GPS_HEADER_ST,  //    1
-            GPS_PAYLOAD_ST,  //   2
-            GPS_CRC_ST,  //       3
+            GPS_SYNC_ST,    //  0
+            GPS_HEADER_ST,  //  1
+            GPS_PAYLOAD_ST, //  2
+            GPS_CRC_ST,     //  3
         };
 
         // Serial port
