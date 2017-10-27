@@ -27,6 +27,15 @@ namespace GPS_DEFINES
         void receiveDataFromGPS(sensor_msgs::NavSatFix*);
         ~GPS();
 
+        /* Log Message IDs */
+        const int BESTPOS = 42;
+        const int GPGGA   = 218;
+        const int GPGSA   = 221;
+        const int GPRMC   = 225;
+        const int BESTXYZ = 241;
+        const int SATXYZ  = 270;
+        const int TRACKSTAT = 83;
+
     private:
         int readDataFromReceiver();
         void configure();
@@ -105,14 +114,6 @@ namespace GPS_DEFINES
             DATA = 28,      //     28  variable
         };
 
-        /* Log Message IDs */
-        int BESTPOS;
-        int GPGGA;
-        int GPGSA;
-        int GPRMC;
-        int BESTXYZ;
-        int SATXYZ;
-        int TRACKSTAT;
 
         enum STATES
         {
