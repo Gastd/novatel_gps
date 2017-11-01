@@ -101,7 +101,10 @@ public:
     void publishData()
     {
         getData();
-        gps_data_pub_.publish(gps_reading_);
+        if(log_id_ == gps.BESTPOS)
+            gps_data_pub_.publish(gps_reading_);
+        if(log_id_ == gps.BESTXYZ)
+            gps_data_pub_.publish(gps_xyz_reading_);
     }
 
     void getData()

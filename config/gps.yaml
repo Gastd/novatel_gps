@@ -3,4 +3,4 @@ port: /dev/ttyUSB0
 
 frame_id: gps_frame
 
-log: 241
+log: 42

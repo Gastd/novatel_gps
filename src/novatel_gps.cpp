@@ -187,7 +187,7 @@ void GPS::init(int log_id)
         command("LOG BESTXYZB ONTIME 0.05");
     if(log_id == TRACKSTAT)
         command("LOG TRACKSTATB ONTIME 1");
-    
+
     waitFirstFix();
 }
 
