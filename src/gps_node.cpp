@@ -63,6 +63,11 @@ public:
             // init the publisher
             gps_data_pub_ = gps_node_handle.advertise<novatel_gps::GpsXYZ>("cart", 10);
         }
+        if(log_id_ == gps.BESTXYZ)
+        {
+            // init the publisher
+            gps_data_pub_ = gps_node_handle.advertise<novatel_gps::GpsXYZ>("cart", 10);
+        }
 
         // calibrate_serv_ = gps_node_handle.advertiseService("calibrate", &GpsNode::calibrate, this);
         running = false;

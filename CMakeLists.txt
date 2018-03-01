@@ -11,6 +11,8 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
   FILES
   GpsXYZ.msg
+  gps_position.msg
+  gps_velocity.msg
 )
 
 generate_messages(

@@ -1,4 +1,4 @@
 # Cartesian coordinates
 
-geometry_msgs/Vector3 position
-geometry_msgs/Vector3 velocity
+novatel_gps/gps_position position
+novatel_gps/gps_velocity velocity

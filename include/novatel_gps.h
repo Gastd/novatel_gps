@@ -11,6 +11,13 @@
 // Serial Port Headers (serialcom-termios)
 #include "serialcom.h"
 
+struct point
+{
+    double x;
+    double y;
+    double z;
+};
+
 class GPS
 {
 public:
@@ -24,9 +31,9 @@ public:
 
     /* Log Message IDs */
     const int BESTPOS = 42;
-    const int GPGGA   = 218;
-    const int GPGSA   = 221;
-    const int GPRMC   = 225;
+    // const int GPGGA   = 218;
+    // const int GPGSA   = 221;
+    // const int GPRMC   = 225;
     const int BESTXYZ = 241;
     const int SATXYZ  = 270;
     const int TRACKSTAT = 83;
@@ -50,8 +57,10 @@ private:
     // unsigned char gps_data_[GPS_PACKET_SIZE];
 
     double status_;
-    double position_status_;    // TO DO: implement gps_state, gps_p_status, v_status
-    double velocity_status_;
+    unsigned short position_status_;    // TO DO: implement gps_state, gps_p_status, v_status
+    unsigned short position_type_;    // TO DO: implement gps_state, gps_p_status, v_status
+    unsigned short velocity_status_;
+    unsigned short velocity_type_;
     unsigned short solution_status_;
     unsigned short position_type_;
     unsigned char number_sat_track_;
