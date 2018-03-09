@@ -20,6 +20,23 @@ generate_messages(
   geometry_msgs
 )
 
+include(ExternalProject)
+ExternalProject_Add(serialcom
+    GIT_REPOSITORY https://github.com/Gastd/serialcom
+    GIT_TAG master
+    # PREFIX ${CMAKE_CURRENT_BINARY_DIR}/serialcom
+    SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/serialcom-src"
+    BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/serialcom-src/build"
+    # CONFIGURE_COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" "${CMAKE_BINARY_DIR}/serialcom-src/"
+    BUILD_COMMAND "${CMAKE_COMMAND}" --build .
+    INSTALL_COMMAND ""
+    TEST_COMMAND ""
+)
+# ExternalProject_Get_Property(serialcom install_dir)
+ExternalProject_Get_Property(serialcom binary_dir)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/serialcom-src/include)
+# message(${install_dir})
+
 add_definitions(-std=c++11 -g)
 
 ###################################
@@ -42,13 +59,15 @@ include_directories(
 )
 
 ## Declare a C++ executable
-add_executable(gps_node src/gps_node.cpp src/novatel_gps.cpp src/serialcom.cpp)
+add_executable(gps_node src/gps_node.cpp src/novatel_gps.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-add_dependencies(gps_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(gps_node serialcom ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(gps_node
   ${catkin_LIBRARIES}
+  ${binary_dir}/${CMAKE_FIND_LIBRARY_PREFIXES}serialcomlib.so
+  -pthread
 )
