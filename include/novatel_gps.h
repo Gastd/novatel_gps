@@ -58,7 +58,7 @@ private:
 
     double status_;
     unsigned short position_status_;    // TO DO: implement gps_state, gps_p_status, v_status
-    unsigned short position_type_;    // TO DO: implement gps_state, gps_p_status, v_status
+    // unsigned short position_type_;    // TO DO: implement gps_state, gps_p_status, v_status
     unsigned short velocity_status_;
     unsigned short velocity_type_;
     unsigned short solution_status_;
