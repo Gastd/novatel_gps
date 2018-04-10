@@ -4,7 +4,7 @@
 
 inline unsigned long ByteSwap (unsigned long n)
 { 
-   return ( ((n &0x000000FF)<<24) + ((n &0x0000FF00)<<8) + ((n &0x00FF0000)>>8) + (( n &0xFF000000)>>24) ); 
+   return ( ((n & 0x000000FF)<<24) + ((n & 0x0000FF00)<<8) + ((n & 0x00FF0000)>>8) + (( n & 0xFF000000)>>24) );
 }
 
 #define CRC32_POLYNOMIAL    0xEDB88320L
@@ -54,109 +54,109 @@ inline unsigned long CalculateBlockCRC32
 
 // GPS Class methods
 
-GPS::GPS() : GPS_PACKET_SIZE(200)
-{
-    serial_port_ = "/dev/ttyUSB0";
-    gps_week = 0;
-    gps_secs = 0;
+GPS::GPS() : GPS_PACKET_SIZE(200),
+    serial_port_("/dev/ttyUSB0"),
+    gps_week(0),
+    gps_secs(0),
 
-    D_SYNC0 = 0xAA;
-    D_SYNC1 = 0x44;
-    D_SYNC2 = 0x12;
-    D_HDR_LEN = 28;
+    D_SYNC0(0xAA),
+    D_SYNC1(0x44),
+    D_SYNC2(0x12),
+    D_HDR_LEN(28),
 
     // TODO: Where did these values come from?
-    BXYZ_PSTAT    = (D_HDR_LEN);
-    BXYZ_PTYPE    = (D_HDR_LEN+4);
-    BXYZ_PX       = (D_HDR_LEN+8);
-    BXYZ_PY       = (D_HDR_LEN+16);
-    BXYZ_PZ       = (D_HDR_LEN+24);
-    BXYZ_sPX      = (D_HDR_LEN+32);
-    BXYZ_sPY      = (D_HDR_LEN+36);
-    BXYZ_sPZ      = (D_HDR_LEN+40);
-    BXYZ_VSTAT    = (D_HDR_LEN+44);
-    BXYZ_VTYPE    = (D_HDR_LEN+48);
-    BXYZ_VX       = (D_HDR_LEN+52);
-    BXYZ_VY       = (D_HDR_LEN+60);
-    BXYZ_VZ       = (D_HDR_LEN+68);
-    BXYZ_sVX      = (D_HDR_LEN+76);
-    BXYZ_sVY      = (D_HDR_LEN+80);
-    BXYZ_sVZ      = (D_HDR_LEN+84);
-    BXYZ_STNID    = (D_HDR_LEN+88);
-    BXYZ_VLATE    = (D_HDR_LEN+92);
-    BXYZ_DIFFAGE  = (D_HDR_LEN+96);
-    BXYZ_SOLAGE   = (D_HDR_LEN+92);
-    BXYZ_SV       = (D_HDR_LEN+92);
-    BXYZ_SOLSV    = (D_HDR_LEN+92);
+    BXYZ_PSTAT   ((D_HDR_LEN)),
+    BXYZ_PTYPE   ((D_HDR_LEN+4)),
+    BXYZ_PX      ((D_HDR_LEN+8)),
+    BXYZ_PY      ((D_HDR_LEN+16)),
+    BXYZ_PZ      ((D_HDR_LEN+24)),
+    BXYZ_sPX     ((D_HDR_LEN+32)),
+    BXYZ_sPY     ((D_HDR_LEN+36)),
+    BXYZ_sPZ     ((D_HDR_LEN+40)),
+    BXYZ_VSTAT   ((D_HDR_LEN+44)),
+    BXYZ_VTYPE   ((D_HDR_LEN+48)),
+    BXYZ_VX      ((D_HDR_LEN+52)),
+    BXYZ_VY      ((D_HDR_LEN+60)),
+    BXYZ_VZ      ((D_HDR_LEN+68)),
+    BXYZ_sVX     ((D_HDR_LEN+76)),
+    BXYZ_sVY     ((D_HDR_LEN+80)),
+    BXYZ_sVZ     ((D_HDR_LEN+84)),
+    BXYZ_STNID   ((D_HDR_LEN+88)),
+    BXYZ_VLATE   ((D_HDR_LEN+92)),
+    BXYZ_DIFFAGE ((D_HDR_LEN+96)),
+    BXYZ_SOLAGE  ((D_HDR_LEN+92)),
+    BXYZ_SV      ((D_HDR_LEN+92)),
+    BXYZ_SOLSV   ((D_HDR_LEN+92)),
 
-    BESTPOS_SOLSTAT     =  (D_HDR_LEN);
-    BESTPOS_POSTYPE     =  (D_HDR_LEN+4);
-    BESTPOS_LAT         =  (D_HDR_LEN+8);
-    BESTPOS_LONG        =  (D_HDR_LEN+16);
-    BESTPOS_HGT         =  (D_HDR_LEN+24);
-    BESTPOS_UND         =  (D_HDR_LEN+32);
-    BESTPOS_DATUMID     =  (D_HDR_LEN+36);
-    BESTPOS_SLAT        =  (D_HDR_LEN+40);
-    BESTPOS_SLON        =  (D_HDR_LEN+44);
-    BESTPOS_SHGT        =  (D_HDR_LEN+48);
-    BESTPOS_STNID       =  (D_HDR_LEN+52);
-    BESTPOS_DIFFAGE     =  (D_HDR_LEN+56);
-    BESTPOS_SOLAGE      =  (D_HDR_LEN+60);
-    BESTPOS_SV          =  (D_HDR_LEN+64);
-    BESTPOS_SOLNSV      =  (D_HDR_LEN+65);
-    BESTPOS_GGL1        =  (D_HDR_LEN+66);
-    BESTPOS_GGL1L2      =  (D_HDR_LEN+67);
-    BESTPOS_EXTSOLSTAT  =  (D_HDR_LEN+69);
-    BESTPOS_SIGMASK     =  (D_HDR_LEN+71);
+    BESTPOS_SOLSTAT    (D_HDR_LEN),
+    BESTPOS_POSTYPE    (D_HDR_LEN+4),
+    BESTPOS_LAT        (D_HDR_LEN+8),
+    BESTPOS_LONG       (D_HDR_LEN+16),
+    BESTPOS_HGT        (D_HDR_LEN+24),
+    BESTPOS_UND        (D_HDR_LEN+32),
+    BESTPOS_DATUMID    (D_HDR_LEN+36),
+    BESTPOS_SLAT       (D_HDR_LEN+40),
+    BESTPOS_SLON       (D_HDR_LEN+44),
+    BESTPOS_SHGT       (D_HDR_LEN+48),
+    BESTPOS_STNID      (D_HDR_LEN+52),
+    BESTPOS_DIFFAGE    (D_HDR_LEN+56),
+    BESTPOS_SOLAGE     (D_HDR_LEN+60),
+    BESTPOS_SV         (D_HDR_LEN+64),
+    BESTPOS_SOLNSV     (D_HDR_LEN+65),
+    BESTPOS_GGL1       (D_HDR_LEN+66),
+    BESTPOS_GGL1L2     (D_HDR_LEN+67),
+    BESTPOS_EXTSOLSTAT (D_HDR_LEN+69),
+    BESTPOS_SIGMASK    (D_HDR_LEN+71),
 
-    SATXYZ_NSAT         =  (D_HDR_LEN+8);
-    SATXYZ_PRN          =  (D_HDR_LEN+12);
-    SATXYZ_X            =  (D_HDR_LEN+16);
-    SATXYZ_Y            =  (D_HDR_LEN+24);
-    SATXYZ_Z            =  (D_HDR_LEN+32);
-    SATXYZ_CLKCORR      =  (D_HDR_LEN+40);
-    SATXYZ_IONCORR      =  (D_HDR_LEN+48);
-    SATXYZ_TRPCORR      =  (D_HDR_LEN+56);
+    SATXYZ_NSAT        (D_HDR_LEN+8),
+    SATXYZ_PRN         (D_HDR_LEN+12),
+    SATXYZ_X           (D_HDR_LEN+16),
+    SATXYZ_Y           (D_HDR_LEN+24),
+    SATXYZ_Z           (D_HDR_LEN+32),
+    SATXYZ_CLKCORR     (D_HDR_LEN+40),
+    SATXYZ_IONCORR     (D_HDR_LEN+48),
+    SATXYZ_TRPCORR     (D_HDR_LEN+56),
 
-    TRACKSTAT_SOLSTAT   = (D_HDR_LEN);
-    TRACKSTAT_POSTYPE   = (D_HDR_LEN+4);
-    TRACKSTAT_CUTOFF    = (D_HDR_LEN+8);
-    TRACKSTAT_CHAN      = (D_HDR_LEN+12);
-    TRACKSTAT_PRN       = (D_HDR_LEN+16);
-    TRACKSTAT_TRK_STAT  = (D_HDR_LEN+20);
-    TRACKSTAT_PSR       = (D_HDR_LEN+24);
-    TRACKSTAT_DOPPLER   = (D_HDR_LEN+32);
-    TRACKSTAT_CN0       = (D_HDR_LEN+36);
+    TRACKSTAT_SOLSTAT  (D_HDR_LEN),
+    TRACKSTAT_POSTYPE  (D_HDR_LEN+4),
+    TRACKSTAT_CUTOFF   (D_HDR_LEN+8),
+    TRACKSTAT_CHAN     (D_HDR_LEN+12),
+    TRACKSTAT_PRN      (D_HDR_LEN+16),
+    TRACKSTAT_TRK_STAT (D_HDR_LEN+20),
+    TRACKSTAT_PSR      (D_HDR_LEN+24),
+    TRACKSTAT_DOPPLER  (D_HDR_LEN+32),
+    TRACKSTAT_CN0      (D_HDR_LEN+36),
 
-    S_MSG_ID     = 2;
-    S_MSG_LEN    = 2;
-    S_SEQ_NUM    = 2;
-    S_T_WEEK     = 2;
-    S_T_MS       = 4;
-    S_GPS_STATUS = 4;
-    S_RESERVED   = 2;
-    S_SW_VERS    = 2;
-    S_CRC        = 4;
+    S_MSG_ID    (2),
+    S_MSG_LEN   (2),
+    S_SEQ_NUM   (2),
+    S_T_WEEK    (2),
+    S_T_MS      (4),
+    S_GPS_STATUS(4),
+    S_RESERVED  (2),
+    S_SW_VERS   (2),
+    S_CRC       (4),
 
-    TIMEOUT_US = 100000;
-    OLD_BPS    = 9600;
-    BPS        = 115200;
-    MAX_BYTES  = 500;
+    TIMEOUT_US(100000),
+    OLD_BPS   (9600),
+    BPS       (115200),
+    MAX_BYTES (500),
 
-    gps_data_.resize(GPS_PACKET_SIZE);
-    velocity_.resize(3);
-    sigma_position_.resize(3);
-    sigma_velocity_.resize(3);
+    gps_data_(GPS_PACKET_SIZE, 0),
+    velocity_(3, 0),
+    sigma_position_(3, 0),
+    sigma_velocity_(3, 0),
 
-    latitude_  = 0.0;
-    longitude_ = 0.0;
-    altitude_  = 0.0;
-    stdev_latitude_  = 0.;
-    stdev_longitude_ = 0.;
-    stdev_altitude_  = 0.;
-    covar_latitude_  = 0.;
-    covar_longitude_ = 0.;
-    covar_altitude_  = 0.;
+    latitude_ (0.0),
+    longitude_(0.0),
+    altitude_ (0.0),
+    stdev_latitude_ (0.),
+    stdev_longitude_(0.),
+    stdev_altitude_ (0.),
+    covar_latitude_ (0.),
+    covar_longitude_(0.),
+    covar_altitude_ (0.)
+{
 }
 
 GPS::~GPS()
@@ -264,7 +264,7 @@ int GPS::readDataFromReceiver()
     unsigned short msg_id, msg_len, t_week;
     unsigned long t_ms, crc_from_packet;
 
-    //command("LOG BESTXYZB ONCE");
+    // command("LOG BESTXYZB ONCE");
 
     // Try to sync with IMU and get latest data packet, up to MAX_BYTES read until failure
     for(i = 0; (!data_ready)&&(i < MAX_BYTES); i++)
