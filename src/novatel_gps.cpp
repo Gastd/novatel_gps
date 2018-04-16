@@ -573,13 +573,12 @@ int GPS::readDataFromReceiver()
                     crc_calculated = CalculateBlockCRC32(b, gps_data_.data()); // C++11
                     
                     // Compare them to see if valid packet 
-                    if(0)
-                    // if(crc_from_packet != ByteSwap(crc_calculated))
+                    if(crc_from_packet != ByteSwap(crc_calculated))
                     {
+                        ROS_ERROR("CRC does not match (%0x != %0x)", crc_from_packet, crc_calculated);
                     }
                     else
                     {
-                        // ROS_ERROR("CRC does not match (%0lx != %0lx)", crc_from_packet, crc_calculated);
                         decode(msg_id);
                         data_ready = 1;
                     }
