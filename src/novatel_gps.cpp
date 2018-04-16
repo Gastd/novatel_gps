@@ -273,7 +273,7 @@ int GPS::readDataFromReceiver()
         if((err = serialcom_receivebyte(&gps_SerialPortConfig, &data_read, TIMEOUT_US)) != SERIALCOM_SUCCESS)
         {
                 ROS_ERROR_STREAM("serialcom_receivebyte failed " << err);
-                continue;
+                break;
         }
         
         // Parse GPS packet (Firmware Reference Manual, p.22)
