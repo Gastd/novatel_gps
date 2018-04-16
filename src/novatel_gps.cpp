@@ -602,9 +602,9 @@ int GPS::readDataFromReceiver()
 
 void GPS::decode(uint16_t msg_id)
 {
-    ROS_INFO("Message ID = %d", msg_id);
-    ROS_ASSERT_MSG(sizeof(double) != 8, "sizeof(double) != 8, check your compiler")
-    ROS_ASSERT_MSG(sizeof(float) != 4, "sizeof(double) != 4, check your compiler")
+    ROS_INFO("Message ID = %u", msg_id);
+    ROS_ASSERT_MSG(sizeof(double) != 8, "sizeof(double) != 8, check your compiler");
+    ROS_ASSERT_MSG(sizeof(float) != 4, "sizeof(double) != 4, check your compiler");
     if(msg_id == BESTXYZ)
     {
         memcpy((void*)&position_status_, (void*)&gps_data_[BXYZ_PSTAT], sizeof(uint16_t));
