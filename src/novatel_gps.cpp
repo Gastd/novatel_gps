@@ -2,7 +2,7 @@
 
 /*************************** CRC functions (Firmware Reference Manual, p.32 + APN-030 Rev 1 Application Note) ***************************/
 
-inline unsigned long ByteSwap (unsigned long n)
+inline uint32_t ByteSwap (uint32_t n)
 { 
    return ( ((n & 0x000000FF)<<24) + ((n & 0x0000FF00)<<8) + ((n & 0x00FF0000)>>8) + (( n & 0xFF000000)>>24) );
 }
@@ -12,10 +12,10 @@ inline unsigned long ByteSwap (unsigned long n)
 /* --------------------------------------------------------------------------
 Calculate a CRC value to be used by CRC calculation functions.
 -------------------------------------------------------------------------- */
-inline unsigned long CRC32Value(int i)
+inline uint32_t CRC32Value(int i)
 {
     int j;
-    unsigned long ulCRC;
+    uint32_t ulCRC;
     ulCRC = i;
 
     for ( j = 8 ; j > 0; j-- )
@@ -31,15 +31,15 @@ inline unsigned long CRC32Value(int i)
 /* --------------------------------------------------------------------------
 Calculates the CRC-32 of a block of data all at once
 -------------------------------------------------------------------------- */
-inline unsigned long CalculateBlockCRC32
+inline uint32_t CalculateBlockCRC32
 (
-    unsigned long ulCount,  /* Number of bytes in the data block */
-    unsigned char *ucBuffer /* Data block */
+    uint32_t ulCount,  /* Number of bytes in the data block */
+    uint8_t *ucBuffer /* Data block */
 )
 {
-    unsigned long ulTemp1;
-    unsigned long ulTemp2;
-    unsigned long ulCRC = 0;
+    uint32_t ulTemp1;
+    uint32_t ulTemp2;
+    uint32_t ulCRC = 0;
 
     while ( ulCount-- != 0 )
     {
@@ -258,11 +258,11 @@ int GPS::readDataFromReceiver()
     int b = 0, bb = 0, s = GPS_SYNC_ST;
 
     // Storage for data read from serial port
-    unsigned char data_read;
+    uint8_t data_read;
 
     // Multi-byte data
-    unsigned short msg_id, msg_len, t_week;
-    unsigned long t_ms, crc_from_packet;
+    uint16_t msg_id, msg_len, t_week;
+    uint32_t t_ms, crc_from_packet;
 
     // command("LOG BESTXYZB ONCE");
 
@@ -360,7 +360,7 @@ int GPS::readDataFromReceiver()
                         if(bb == S_MSG_ID)
                         {
                             // Merge bytes and process
-                            memcpy((void*)&msg_id, (void*)&gps_data_[MSG_ID], sizeof(unsigned short));
+                            memcpy((void*)&msg_id, (void*)&gps_data_[MSG_ID], sizeof(uint16_t));
                             
                             // Update byte indices
                             bb = 0;
@@ -392,7 +392,7 @@ int GPS::readDataFromReceiver()
                         if(bb == S_MSG_LEN)
                         {
                             // Merge bytes and process
-                            memcpy((void*)&msg_len, (void*)&gps_data_[MSG_LEN], sizeof(unsigned short));
+                            memcpy((void*)&msg_len, (void*)&gps_data_[MSG_LEN], sizeof(uint16_t));
 
                             // I was having some problems with (msg_len == 0)...
                             if(msg_len != 0)
@@ -421,7 +421,7 @@ int GPS::readDataFromReceiver()
                         if(bb == S_SEQ_NUM)
                         {
                             // Merge bytes and process
-                            //memcpy((void*)&seq_num, (void*)&gps_data_[SEQ_NUM], sizeof(unsigned short));
+                            //memcpy((void*)&seq_num, (void*)&gps_data_[SEQ_NUM], sizeof(uint16_t));
                             
                             // Update byte indices
                             bb = 0;
@@ -453,7 +453,7 @@ int GPS::readDataFromReceiver()
                         if(bb == S_T_WEEK)
                         {
                             // Merge bytes and process
-                            memcpy((void*)&t_week, (void*)&gps_data_[T_WEEK], sizeof(unsigned short));
+                            memcpy((void*)&t_week, (void*)&gps_data_[T_WEEK], sizeof(uint16_t));
                             
                             // Update byte indices
                             bb = 0;
@@ -471,7 +471,7 @@ int GPS::readDataFromReceiver()
                         if(bb == S_T_MS)
                         {
                             // Merge bytes and process
-                            memcpy((void*)&t_ms, (void*)&gps_data_[T_MS], sizeof(unsigned long));
+                            memcpy((void*)&t_ms, (void*)&gps_data_[T_MS], sizeof(uint32_t));
                             
                             // Update byte indices
                             bb = 0;
@@ -489,7 +489,7 @@ int GPS::readDataFromReceiver()
                         if(bb == S_GPS_STATUS)
                         {
                             // Merge bytes and process
-                            memcpy((void*)&(status_), (void*)&gps_data_[GPS_STATUS], sizeof(unsigned long));
+                            memcpy((void*)&(status_), (void*)&gps_data_[GPS_STATUS], sizeof(uint32_t));
                             
                             // Update byte indices
                             bb = 0;
@@ -522,7 +522,7 @@ int GPS::readDataFromReceiver()
                         if(bb == S_SW_VERS)
                         {
                             // Merge bytes and process
-                            //memcpy((void*)&sw_vers, (void*)&gps_data_[SW_VERS], sizeof(unsigned short));
+                            //memcpy((void*)&sw_vers, (void*)&gps_data_[SW_VERS], sizeof(uint16_t));
                             
                             // Update byte indices
                             bb = 0;
@@ -564,9 +564,9 @@ int GPS::readDataFromReceiver()
                 bb++;
                 if(bb == S_CRC)
                 {       
-                    unsigned long crc_calculated;
+                    uint32_t crc_calculated;
                     // Grab CRC from packet
-                    crc_from_packet = ((unsigned long)((gps_data_[b+3] << 24) | (gps_data_[b+2] << 16) | (gps_data_[b+1] << 8) | gps_data_[b]));
+                    crc_from_packet = ((uint32_t)((gps_data_[b+3] << 24) | (gps_data_[b+2] << 16) | (gps_data_[b+1] << 8) | gps_data_[b]));
                     
                     // Calculate CRC from packet (b = packet size)
                     // crc_calculated = CalculateBlockCRC32(b, &gps_data_[0]); // GAMBIARRA
@@ -600,15 +600,15 @@ int GPS::readDataFromReceiver()
     return data_ready;
 }
 
-void GPS::decode(unsigned short msg_id)
+void GPS::decode(uint16_t msg_id)
 {
     ROS_INFO("Message ID = %d", msg_id);
     if(sizeof(double) != 8)
         ROS_FATAL("sizeof(double) != 8, check decode");
     if(msg_id == BESTXYZ)
     {
-        memcpy((void*)&position_status_, (void*)&gps_data_[BXYZ_PSTAT], sizeof(unsigned short));
-        memcpy((void*)&position_type_, (void*)&gps_data_[BXYZ_PTYPE], sizeof(unsigned short));
+        memcpy((void*)&position_status_, (void*)&gps_data_[BXYZ_PSTAT], sizeof(uint16_t));
+        memcpy((void*)&position_type_, (void*)&gps_data_[BXYZ_PTYPE], sizeof(uint16_t));
 
         memcpy((void*)&x_, (void*)&gps_data_[BXYZ_PX], sizeof(double));
         memcpy((void*)&y_, (void*)&gps_data_[BXYZ_PY], sizeof(double));
@@ -618,8 +618,8 @@ void GPS::decode(unsigned short msg_id)
         memcpy((void*)&sigma_position_[1], (void*)&gps_data_[BXYZ_sPY], sizeof(float));
         memcpy((void*)&sigma_position_[2], (void*)&gps_data_[BXYZ_sPZ], sizeof(float));
 
-        memcpy((void*)&velocity_status_, (void*)&gps_data_[BXYZ_VSTAT], sizeof(unsigned short));
-        memcpy((void*)&velocity_type_, (void*)&gps_data_[BXYZ_VTYPE], sizeof(unsigned short));
+        memcpy((void*)&velocity_status_, (void*)&gps_data_[BXYZ_VSTAT], sizeof(uint16_t));
+        memcpy((void*)&velocity_type_, (void*)&gps_data_[BXYZ_VTYPE], sizeof(uint16_t));
 
         memcpy((void*)&velocity_[0], (void*)&gps_data_[BXYZ_VX], sizeof(double));
         memcpy((void*)&velocity_[1], (void*)&gps_data_[BXYZ_VY], sizeof(double));
@@ -629,8 +629,8 @@ void GPS::decode(unsigned short msg_id)
         memcpy((void*)&sigma_velocity_[1], (void*)&gps_data_[BXYZ_sVY], sizeof(float));
         memcpy((void*)&sigma_velocity_[2], (void*)&gps_data_[BXYZ_sVZ], sizeof(float));
 
-        memcpy((void*)&number_sat_track_, (void*)&gps_data_[BXYZ_SV], sizeof(unsigned char));
-        memcpy((void*)&number_sat_sol_, (void*)&gps_data_[BXYZ_SOLSV], sizeof(unsigned char));
+        memcpy((void*)&number_sat_track_, (void*)&gps_data_[BXYZ_SV], sizeof(uint8_t));
+        memcpy((void*)&number_sat_sol_, (void*)&gps_data_[BXYZ_SOLSV], sizeof(uint8_t));
 
         ROS_INFO("Position Solution Status = %d", position_status_);
         ROS_INFO("Velocity Solution Status = %d", velocity_status_);
@@ -640,8 +640,8 @@ void GPS::decode(unsigned short msg_id)
     }
     if(msg_id == BESTPOS)
     {
-        memcpy((void*)&solution_status_, (void*)&gps_data_[BESTPOS_SOLSTAT], sizeof(unsigned short));
-        memcpy((void*)&position_type_, (void*)&gps_data_[BESTPOS_POSTYPE], sizeof(unsigned short));
+        memcpy((void*)&solution_status_, (void*)&gps_data_[BESTPOS_SOLSTAT], sizeof(uint16_t));
+        memcpy((void*)&position_type_, (void*)&gps_data_[BESTPOS_POSTYPE], sizeof(uint16_t));
 
         memcpy((void*)&latitude_, (void*)&gps_data_[BESTPOS_LAT], sizeof(double));
         memcpy((void*)&longitude_, (void*)&gps_data_[BESTPOS_LONG], sizeof(double));
@@ -651,8 +651,8 @@ void GPS::decode(unsigned short msg_id)
         memcpy((void*)&stdev_longitude_, (void*)&gps_data_[BESTPOS_SLON], sizeof(float));
         memcpy((void*)&stdev_altitude_, (void*)&gps_data_[BESTPOS_SHGT], sizeof(float));
 
-        memcpy((void*)&number_sat_track_, (void*)&gps_data_[BESTPOS_SV], sizeof(unsigned char));
-        memcpy((void*)&number_sat_sol_, (void*)&gps_data_[BESTPOS_SOLNSV], sizeof(unsigned char));
+        memcpy((void*)&number_sat_track_, (void*)&gps_data_[BESTPOS_SV], sizeof(uint8_t));
+        memcpy((void*)&number_sat_sol_, (void*)&gps_data_[BESTPOS_SOLNSV], sizeof(uint8_t));
 
         ROS_INFO("Sat = %d", number_sat_track_);
         ROS_INFO("Sat sol = %d", number_sat_sol_);
@@ -662,8 +662,8 @@ void GPS::decode(unsigned short msg_id)
     }
     if(msg_id == SATXYZ)
     {
-        memcpy((void*)&number_satellites_, (void*)&gps_data_[SATXYZ_NSAT], sizeof(unsigned long));
-        memcpy((void*)&gps_prn_, (void*)&gps_data_[SATXYZ_PRN], sizeof(unsigned long));
+        memcpy((void*)&number_satellites_, (void*)&gps_data_[SATXYZ_NSAT], sizeof(uint32_t));
+        memcpy((void*)&gps_prn_, (void*)&gps_data_[SATXYZ_PRN], sizeof(uint32_t));
 
         memcpy((void*)&x_, (void*)&gps_data_[SATXYZ_X], sizeof(double));
         memcpy((void*)&y_, (void*)&gps_data_[SATXYZ_Y], sizeof(double));
@@ -675,20 +675,20 @@ void GPS::decode(unsigned short msg_id)
     }
     if(msg_id == TRACKSTAT)
     {
-        memcpy((void*)&solution_status_, (void*)&gps_data_[TRACKSTAT_SOLSTAT], sizeof(unsigned short));
-        memcpy((void*)&position_type_, (void*)&gps_data_[TRACKSTAT_POSTYPE], sizeof(unsigned short));
+        memcpy((void*)&solution_status_, (void*)&gps_data_[TRACKSTAT_SOLSTAT], sizeof(uint16_t));
+        memcpy((void*)&position_type_, (void*)&gps_data_[TRACKSTAT_POSTYPE], sizeof(uint16_t));
         memcpy((void*)&cutoff_, (void*)&gps_data_[TRACKSTAT_CUTOFF], sizeof(float));
-        memcpy((void*)&channels_, (void*)&gps_data_[TRACKSTAT_CHAN], sizeof(long));
+        memcpy((void*)&channels_, (void*)&gps_data_[TRACKSTAT_CHAN], sizeof(int32_t));
 
-        memcpy((void*)&prn_, (void*)&gps_data_[TRACKSTAT_PRN], sizeof(short));
-        memcpy((void*)&trk_stat_, (void*)&gps_data_[TRACKSTAT_TRK_STAT], sizeof(unsigned long));
+        memcpy((void*)&prn_, (void*)&gps_data_[TRACKSTAT_PRN], sizeof(int16_t));
+        memcpy((void*)&trk_stat_, (void*)&gps_data_[TRACKSTAT_TRK_STAT], sizeof(uint32_t));
         memcpy((void*)&psr_, (void*)&gps_data_[TRACKSTAT_PSR], sizeof(double));
         memcpy((void*)&doppler_, (void*)&gps_data_[TRACKSTAT_DOPPLER], sizeof(float));
         memcpy((void*)&CN0_, (void*)&gps_data_[TRACKSTAT_CN0], sizeof(float));
 
         ROS_INFO("Solution Status = %d", solution_status_);
         ROS_INFO("Position Type = %d", position_type_);
-        ROS_INFO("Channels = %ld", channels_);
+        ROS_INFO("Channels = %d", channels_);
 
         ROS_INFO("Satellite: %d", prn_);
         ROS_INFO("with Pseudorange: %f", psr_);
@@ -697,24 +697,24 @@ void GPS::decode(unsigned short msg_id)
     }
 }
 
-void GPS::print_formatted()
-{
-    ROS_INFO("GPS: p(%.3lf %.3lf %.3lf) sp(%.3lf %.3lf %.3lf) v(%.3lf %.3lf %.3lf) sv(%.3lf %.3lf %.3lf) status(%lx %lx)",
-                longitude_,
-                latitude_,
-                altitude_,
-                sigma_position_[0],
-                sigma_position_[1],
-                sigma_position_[2],
-                velocity_[0],
-                velocity_[1],
-                velocity_[2],
-                sigma_velocity_[0],
-                sigma_velocity_[1],
-                sigma_velocity_[2],
-                (long)position_status_,
-                (long)velocity_status_);
-}
+// void GPS::print_formatted()
+// {
+//     ROS_INFO("GPS: p(%.3lf %.3lf %.3lf) sp(%.3lf %.3lf %.3lf) v(%.3lf %.3lf %.3lf) sv(%.3lf %.3lf %.3lf) status(%lx %lx)",
+//                 longitude_,
+//                 latitude_,
+//                 altitude_,
+//                 sigma_position_[0],
+//                 sigma_position_[1],
+//                 sigma_position_[2],
+//                 velocity_[0],
+//                 velocity_[1],
+//                 velocity_[2],
+//                 sigma_velocity_[0],
+//                 sigma_velocity_[1],
+//                 sigma_velocity_[2],
+//                 (int32_t)position_status_,
+//                 (int32_t)velocity_status_);
+// }
 
 void GPS::close()
 {
@@ -757,7 +757,7 @@ void GPS::configure()
     else
     {
         char buf[100];
-        sprintf(buf, "SETAPPROXTIME %lu %lu", gps_week, gps_secs);
+        sprintf(buf, "SETAPPROXTIME %lu %f", gps_week, gps_secs);
         command(buf);
     }
 
@@ -864,16 +864,16 @@ int GPS::getApproxTime()
 {
     // Time difference between January 1, 1970 and January 6, 1980
     // Source: http://www.timeanddate.com/date/durationresult.html?d1=1&m1=jan&y1=1970&h1=0&i1=0&s1=0&d2=6&m2=jan&y2=1980&h2=0&i2=0&s2=0
-    const unsigned long int time_diff = 315964800;
+    const uint32_t time_diff = 315964800;
 
     // # of seconds in a week
-    const unsigned long int secs_in_week = 604800;
+    const uint32_t secs_in_week = 604800;
 
     // Unix time
     time_t cpu_secs;
 
     // Unprocessed GPS time
-    unsigned long int gps_time;
+    uint32_t gps_time;
 
     // Get time
     cpu_secs = time(NULL);
@@ -889,7 +889,7 @@ int GPS::getApproxTime()
         return 0;
 }
 
-void GPS::gtime(unsigned char t_status, unsigned short t_week, unsigned long t_ms)
+void GPS::gtime(uint8_t t_status, uint16_t t_week, uint32_t t_ms)
 {
     // GPS week number = full week number starting from midnight of the night from January 5 to January 6, 1980
     // TO DO: figure out what this was for. I think it was supposed to decode time information and know if GPS has valid time

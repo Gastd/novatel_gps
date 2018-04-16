@@ -43,8 +43,8 @@ private:
     void configure();
     void command(const char* command);
     int getApproxTime();
-    void decode(unsigned short msg_id);
-    void gtime(unsigned char t_status, unsigned short t_week, unsigned long t_ms);
+    void decode(uint16_t msg_id);
+    void gtime(uint8_t t_status, uint16_t t_week, uint32_t t_ms);
     void throwSerialComException(int);
     void waitReceiveInit();
     void waitFirstFix();
@@ -53,18 +53,18 @@ private:
     std::string serial_port_;
     // GPS data packet
     const int GPS_PACKET_SIZE;
-    std::vector<unsigned char> gps_data_;
-    // unsigned char gps_data_[GPS_PACKET_SIZE];
+    std::vector<uint8_t> gps_data_;
+    // uint8_t gps_data_[GPS_PACKET_SIZE];
 
     double status_;
-    unsigned short position_status_;    // TO DO: implement gps_state, gps_p_status, v_status
-    // unsigned short position_type_;    // TO DO: implement gps_state, gps_p_status, v_status
-    unsigned short velocity_status_;
-    unsigned short velocity_type_;
-    unsigned short solution_status_;
-    unsigned short position_type_;
-    unsigned char number_sat_track_;
-    unsigned char number_sat_sol_;
+    uint16_t position_status_;    // TO DO: implement gps_state, gps_p_status, v_status
+    // uint16_t position_type_;    // TO DO: implement gps_state, gps_p_status, v_status
+    uint16_t velocity_status_;
+    uint16_t velocity_type_;
+    uint16_t solution_status_;
+    uint16_t position_type_;
+    uint8_t number_sat_track_;
+    uint8_t number_sat_sol_;
     double latitude_;
     double longitude_;
     double altitude_;
@@ -79,8 +79,8 @@ private:
     std::vector<double> sigma_position_;
     std::vector<double> sigma_velocity_;
 
-    unsigned long number_satellites_;
-    unsigned long gps_prn_;
+    uint32_t number_satellites_;
+    uint32_t gps_prn_;
     double x_;
     double y_;
     double z_;
@@ -89,9 +89,9 @@ private:
     double trp_correction_;
 
     float cutoff_;
-    long channels_;
-    short prn_;
-    unsigned long trk_stat_;
+    int32_t channels_;
+    int16_t prn_;
+    uint32_t trk_stat_;
     double psr_;
     float doppler_;
     float CN0_;
@@ -99,22 +99,22 @@ private:
     enum HEADER_ORDER
     {
         // Header byte order/format
-        SYNC0,          //     0   char
-        SYNC1,          //     1   char
-        SYNC2,          //     2   char
-        HDR_LEN,        //     3   uchar
-        MSG_ID,         //     4   ushort
-        MSG_TYPE = 6,   //     6   char
-        PORT_ADDR,      //     7   uchar
-        MSG_LEN,        //     8   ushort
-        SEQ_NUM = 10,   //     10  ushort
-        IDLE_T = 12,    //     12  uchar
+        SYNC0,          //     0   int8_t
+        SYNC1,          //     1   int8_t
+        SYNC2,          //     2   int8_t
+        HDR_LEN,        //     3   uint8_t
+        MSG_ID,         //     4   uint16_t
+        MSG_TYPE = 6,   //     6   int8_t
+        PORT_ADDR,      //     7   uint8_t
+        MSG_LEN,        //     8   uint16_t
+        SEQ_NUM = 10,   //     10  uint16_t
+        IDLE_T = 12,    //     12  uint8_t
         T_STATUS,       //     13  enum
-        T_WEEK,         //     14  ushort
-        T_MS = 16,      //     16  GPSec (ulong)
-        GPS_STATUS = 20,//     20  ulong
-        RESERVED = 24,  //     24  ushort
-        SW_VERS = 26,   //     26  ushort
+        T_WEEK,         //     14  uint16_t
+        T_MS = 16,      //     16  GPSec (uint32_t)
+        GPS_STATUS = 20,//     20  uint32_t
+        RESERVED = 24,  //     24  uint16_t
+        SW_VERS = 26,   //     26  uint16_t
         DATA = 28,      //     28  variable
     };
 
@@ -137,7 +137,7 @@ private:
 
     // GPS week
     unsigned long gps_week;
-    unsigned long gps_secs;
+    double gps_secs;
 
     // Default values
     int D_SYNC0;
