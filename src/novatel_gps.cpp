@@ -137,9 +137,9 @@ GPS::GPS() : GPS_PACKET_SIZE(200),
     S_SW_VERS   (2),
     S_CRC       (4),
 
-    TIMEOUT_US(100000),
+    TIMEOUT_US(1e4),
     OLD_BPS   (9600),
-    BPS       (115200),
+    BPS       (9600),
     MAX_BYTES (500),
 
     gps_data_(GPS_PACKET_SIZE, 0),
@@ -275,7 +275,7 @@ int GPS::readDataFromReceiver()
                 ROS_ERROR_STREAM("serialcom_receivebyte failed " << err);
                 break;
         }
-        
+
         // Parse GPS packet (Firmware Reference Manual, p.22)
         switch(s)
         {
@@ -361,7 +361,7 @@ int GPS::readDataFromReceiver()
                         {
                             // Merge bytes and process
                             memcpy((void*)&msg_id, (void*)&gps_data_[MSG_ID], sizeof(uint16_t));
-                            
+
                             // Update byte indices
                             bb = 0;
                             b += S_MSG_ID;
@@ -567,7 +567,7 @@ int GPS::readDataFromReceiver()
                     uint32_t crc_calculated;
                     // Grab CRC from packet
                     crc_from_packet = ((uint32_t)((gps_data_[b+3] << 24) | (gps_data_[b+2] << 16) | (gps_data_[b+1] << 8) | gps_data_[b]));
-                    
+
                     // Calculate CRC from packet (b = packet size)
                     // crc_calculated = CalculateBlockCRC32(b, &gps_data_[0]); // GAMBIARRA
                     crc_calculated = CalculateBlockCRC32(b, gps_data_.data()); // C++11
@@ -732,16 +732,18 @@ void GPS::configure()
     int err;
 
     // GPS should be configured to 9600 and change to 115200 during execution
-    command("COM COM1,115200,N,8,1,N,OFF,ON");
+    char buffer[100];
+    sprintf(buffer, "COM COM1,%d,N,8,1,N,OFF,ON", BPS);
+    command(buffer);
     // command("COM COM2,115200,N,8,1,N,OFF,ON");
-    
+
     if((err = serialcom_close(&gps_SerialPortConfig)) != SERIALCOM_SUCCESS)
     {
         ROS_ERROR_STREAM("serialcom_close failed " << err);
         throwSerialComException(err);
     }
 
-    // Reconnecting at 115200 bps
+    // Reconnecting at 9600 bps
     if((err = serialcom_init(&gps_SerialPortConfig, 1, (char*)serial_port_.c_str(), BPS)) != SERIALCOM_SUCCESS)
     {
         ROS_ERROR_STREAM("serialcom_init failed " << err);
@@ -849,13 +851,13 @@ void GPS::command(const char* command)
     for(i = 0; i < len; i++)
     {
         serialcom_sendbyte(&gps_SerialPortConfig, (unsigned char*) &command[i]);
-        usleep(5000);
+        usleep(50);
     }
 
     serialcom_sendbyte(&gps_SerialPortConfig, (unsigned char*) "\r");
-    usleep(5000);
+    usleep(50);
     serialcom_sendbyte(&gps_SerialPortConfig, (unsigned char*) "\n");
-    usleep(5000);
+    usleep(50);
 }
 
 // Calculate GPS week number and seconds, within 10 minutes of actual time, for initialization
