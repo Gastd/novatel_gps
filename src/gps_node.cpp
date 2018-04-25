@@ -94,11 +94,13 @@ public:
 
     bool spin()
     {
+        ros::Rate r(20);
         start();
         while(ros::ok())
         {
             publishData();
             ros::spinOnce();
+            r.sleep();
         }
         stop();
     }
