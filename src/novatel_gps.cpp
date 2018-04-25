@@ -575,11 +575,8 @@ int GPS::readDataFromReceiver()
                     {
                         ROS_ERROR("CRC does not match (%0x != %0x)", crc_from_packet, crc_calculated);
                     }
-                    else
-                    {
-                        decode(msg_id);
-                        data_ready = 1;
-                    }
+                    decode(msg_id);
+                    data_ready = 1;
 
                     // State transition: Unconditional reset
                     bb = 0;
