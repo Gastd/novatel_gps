@@ -264,16 +264,14 @@ int GPS::readDataFromReceiver()
     uint16_t msg_id, msg_len, t_week;
     uint32_t t_ms, crc_from_packet;
 
-    // command("LOG BESTXYZB ONCE");
-
     // Try to sync with IMU and get latest data packet, up to MAX_BYTES read until failure
     for(i = 0; (!data_ready)&&(i < MAX_BYTES); i++)
     {
         // Read data from serial port
         if((err = serialcom_receivebyte(&gps_SerialPortConfig, &data_read, TIMEOUT_US)) != SERIALCOM_SUCCESS)
         {
-                ROS_ERROR_STREAM("serialcom_receivebyte failed " << err);
-                break;
+            ROS_ERROR_STREAM("serialcom_receivebyte failed " << err);
+            break;
         }
 
         // Parse GPS packet (Firmware Reference Manual, p.22)
@@ -352,7 +350,7 @@ int GPS::readDataFromReceiver()
                     }
 
                     case MSG_ID:
-                    {                       
+                    {
                         // Index bb is for bytes in multi-byte variables
                         gps_data_[b+bb] = data_read;
                         bb++;
@@ -396,13 +394,13 @@ int GPS::readDataFromReceiver()
 
                             // I was having some problems with (msg_len == 0)...
                             if(msg_len != 0)
-                            {                   
+                            {
                                 // Update byte indices
                                 bb = 0;
                                 b += S_MSG_LEN;
                             }
                             else
-                            {                               
+                            {
                                 // Something wrong, reset
                                 bb = 0;
                                 b = 0;
@@ -422,7 +420,7 @@ int GPS::readDataFromReceiver()
                         {
                             // Merge bytes and process
                             //memcpy((void*)&seq_num, (void*)&gps_data_[SEQ_NUM], sizeof(uint16_t));
-                            
+
                             // Update byte indices
                             bb = 0;
                             b += S_SEQ_NUM;
@@ -433,14 +431,14 @@ int GPS::readDataFromReceiver()
                     case IDLE_T:
                     {
                         gps_data_[b] = data_read;
-                        b++;                    
+                        b++;
                         break;
                     }
 
                     case T_STATUS:
                     {
                         gps_data_[b] = data_read;
-                        b++;                    
+                        b++;
                         break;
                     }
 
@@ -454,7 +452,7 @@ int GPS::readDataFromReceiver()
                         {
                             // Merge bytes and process
                             memcpy((void*)&t_week, (void*)&gps_data_[T_WEEK], sizeof(uint16_t));
-                            
+
                             // Update byte indices
                             bb = 0;
                             b += S_T_WEEK;
@@ -472,7 +470,7 @@ int GPS::readDataFromReceiver()
                         {
                             // Merge bytes and process
                             memcpy((void*)&t_ms, (void*)&gps_data_[T_MS], sizeof(uint32_t));
-                            
+
                             // Update byte indices
                             bb = 0;
                             b += S_T_MS;
@@ -490,7 +488,7 @@ int GPS::readDataFromReceiver()
                         {
                             // Merge bytes and process
                             memcpy((void*)&(status_), (void*)&gps_data_[GPS_STATUS], sizeof(uint32_t));
-                            
+
                             // Update byte indices
                             bb = 0;
                             b += S_GPS_STATUS;
@@ -503,7 +501,7 @@ int GPS::readDataFromReceiver()
                         // Index bb is for bytes in multi-byte variables
                         // Skip this section, no useful data
                         bb++;
-                        
+
                         if(bb == S_RESERVED)
                         {
                             // Update byte indices
@@ -523,7 +521,7 @@ int GPS::readDataFromReceiver()
                         {
                             // Merge bytes and process
                             //memcpy((void*)&sw_vers, (void*)&gps_data_[SW_VERS], sizeof(uint16_t));
-                            
+
                             // Update byte indices
                             bb = 0;
                             b += S_SW_VERS;
@@ -543,12 +541,12 @@ int GPS::readDataFromReceiver()
                 // State logic: Grab data until you reach the CRC bytes
                 gps_data_[b+bb] = data_read;
                 bb++;
-                
+
                 // State transition: I have reached the CRC bytes
                 if(bb == msg_len)
                 {
                     // Bytes are decoded after CRC check
-                                        
+
                     // Update byte indices
                     bb = 0;
                     b += msg_len;
@@ -563,7 +561,7 @@ int GPS::readDataFromReceiver()
                 gps_data_[b+bb] = data_read;
                 bb++;
                 if(bb == S_CRC)
-                {       
+                {
                     uint32_t crc_calculated;
                     // Grab CRC from packet
                     crc_from_packet = ((uint32_t)((gps_data_[b+3] << 24) | (gps_data_[b+2] << 16) | (gps_data_[b+1] << 8) | gps_data_[b]));
@@ -571,7 +569,7 @@ int GPS::readDataFromReceiver()
                     // Calculate CRC from packet (b = packet size)
                     // crc_calculated = CalculateBlockCRC32(b, &gps_data_[0]); // GAMBIARRA
                     crc_calculated = CalculateBlockCRC32(b, gps_data_.data()); // C++11
-                    
+
                     // Compare them to see if valid packet 
                     if(crc_from_packet != ByteSwap(crc_calculated))
                     {
@@ -582,7 +580,7 @@ int GPS::readDataFromReceiver()
                         decode(msg_id);
                         data_ready = 1;
                     }
-                        
+
                     // State transition: Unconditional reset
                     bb = 0;
                     b = 0;
