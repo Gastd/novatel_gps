@@ -249,7 +249,7 @@ void GPS::waitFirstFix()
     // }
 }
 
-void GPS::recoverSync()
+void GPS::recoverSynch()
 {
     // request data and override the lastest timestamp
     if(log_id == BESTPOS)
@@ -264,7 +264,7 @@ void GPS::recoverSync()
 int GPS::readDataFromReceiver()
 {
     if(synch_failure_counter_ >= MAX_SYNC_FAIL)
-        recoverSync();
+        recoverSynch();
 
     int i;
     int err;

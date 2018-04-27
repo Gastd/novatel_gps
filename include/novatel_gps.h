@@ -49,6 +49,7 @@ private:
     void waitReceiveInit();
     void waitFirstFix();
     void print_formatted();
+    void recoverSynch();
 
     std::string serial_port_;
     // GPS data packet
