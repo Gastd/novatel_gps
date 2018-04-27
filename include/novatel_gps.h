@@ -133,6 +133,7 @@ private:
     int OLD_BPS;
     int BPS;
     int MAX_BYTES;
+    int synch_failure_counter_;
     SERIALPORTCONFIG gps_SerialPortConfig;
 
     // GPS week

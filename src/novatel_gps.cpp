@@ -8,6 +8,7 @@ inline uint32_t ByteSwap (uint32_t n)
 }
 
 #define CRC32_POLYNOMIAL    0xEDB88320L
+#define MAX_SYNC_FAIL       25
 
 /* --------------------------------------------------------------------------
 Calculate a CRC value to be used by CRC calculation functions.
@@ -141,6 +142,7 @@ GPS::GPS() : GPS_PACKET_SIZE(200),
     OLD_BPS   (9600),
     BPS       (9600),
     MAX_BYTES (500),
+    synch_failure_counter_(0),
 
     gps_data_(GPS_PACKET_SIZE, 0),
     velocity_(3, 0),
@@ -247,9 +249,23 @@ void GPS::waitFirstFix()
     // }
 }
 
+void GPS::recoverSync()
+{
+    // request data and override the lastest timestamp
+    if(log_id == BESTPOS)
+        command("LOG BESTPOSB ONTIME 0.05");
+    if(log_id == BESTXYZ)
+        command("LOG BESTXYZB ONTIME 0.05");
+    if(log_id == TRACKSTAT)
+        command("LOG TRACKSTATB ONTIME 1");
+}
+
 
 int GPS::readDataFromReceiver()
 {
+    if(synch_failure_counter_ >= MAX_SYNC_FAIL)
+        recoverSync();
+
     int i;
     int err;
     int data_ready = 0;
@@ -271,6 +287,7 @@ int GPS::readDataFromReceiver()
         if((err = serialcom_receivebyte(&gps_SerialPortConfig, &data_read, TIMEOUT_US)) != SERIALCOM_SUCCESS)
         {
             ROS_ERROR_STREAM("serialcom_receivebyte failed " << err);
+            synch_failure_counter_++;
             break;
         }
 
