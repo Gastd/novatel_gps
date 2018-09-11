@@ -1,3 +1,3 @@
 # novatel_gps
 
-Driver for Novatel GPS receiver model OMV1
+Driver for Novatel GPS receiver model OEMV1
