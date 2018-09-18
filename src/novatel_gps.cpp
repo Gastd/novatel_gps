@@ -140,7 +140,7 @@ GPS::GPS() : GPS_PACKET_SIZE(200),
 
     TIMEOUT_US(1e4),
     OLD_BPS   (9600),
-    BPS       (9600),
+    BPS       (115200),
     MAX_BYTES (500),
     synch_failure_counter_(0),
 
@@ -193,14 +193,16 @@ void GPS::init(int log_id)
     waitFirstFix();
 }
 
-void GPS::init(int log_id, std::string port)
+void GPS::init(int log_id, std::string port, double rate = 20)
 {
     int err;
 
-    waitReceiveInit();
-
     if(port != std::string())
         serial_port_ = port;
+
+    rate_ = rate;
+    TIMEOUT_US = ((1.0/rate_)*1e6);
+    ROS_INFO_STREAM("TIMEOUT_US = " << TIMEOUT_US);
 
     // Init serial port at 9600 bps
     if((err = serialcom_init(&gps_SerialPortConfig, 1, (char*)serial_port_.c_str(), OLD_BPS)) != SERIALCOM_SUCCESS)
@@ -209,18 +211,29 @@ void GPS::init(int log_id, std::string port)
         throwSerialComException(err);
     }
 
+    waitReceiveInit();
     // Configure GPS, set baudrate to 115200 bps and reconnect
+    ROS_INFO("Configuring Receiver");
     configure();
 
     // Request GPS data
+    char buf[100];
+    double time_f = static_cast<double>(1.0/rate_);
     if(log_id == BESTPOS)
-        command("LOG BESTPOSB ONTIME 0.05");
+    {
+        sprintf(buf, "LOG BESTPOSB ONTIME %f", time_f);
+        command(buf);
+    }
     if(log_id == BESTXYZ)
-        command("LOG BESTXYZB ONTIME 0.05");
+    {
+        sprintf(buf, "LOG BESTXYZB ONTIME %f", time_f);
+        command(buf);
+    }
     if(log_id == TRACKSTAT)
-        command("LOG TRACKSTATB ONTIME 1");
-
-    waitFirstFix();
+    {
+        sprintf(buf, "LOG TRACKSTATB ONTIME %f", time_f);
+        command(buf);
+    }
 }
 
 void GPS::waitReceiveInit()
@@ -251,25 +264,27 @@ void GPS::waitFirstFix()
 
 void GPS::recoverSynch()
 {
+    ROS_INFO("Resetting the log");
+    // flushes both data received but not read, and data written but not transmitted.
+    tcflush(gps_SerialPortConfig.fd, TCIOFLUSH);
     // request data and override the lastest timestamp
-    if(log_id == BESTPOS)
-        command("LOG BESTPOSB ONTIME 0.05");
-    if(log_id == BESTXYZ)
-        command("LOG BESTXYZB ONTIME 0.05");
-    if(log_id == TRACKSTAT)
-        command("LOG TRACKSTATB ONTIME 1");
+    command("LOG BESTXYZB ONTIME 0.25");
+    ROS_INFO("Waiting 15 seconds to synch with receiver");
+    ros::Duration(15.0).sleep();
+    // reset counter
+    synch_failure_counter_ = 0;
 }
 
 
 int GPS::readDataFromReceiver()
 {
-    if(synch_failure_counter_ >= MAX_SYNC_FAIL)
-        recoverSynch();
+    // if(synch_failure_counter_ >= MAX_SYNC_FAIL)
+    //     recoverSynch();
 
     int i;
     int err;
     int data_ready = 0;
-
+    ++synch_failure_counter_pos;
     // State machine variables
     int b = 0, bb = 0, s = GPS_SYNC_ST;
 
@@ -286,8 +301,8 @@ int GPS::readDataFromReceiver()
         // Read data from serial port
         if((err = serialcom_receivebyte(&gps_SerialPortConfig, &data_read, TIMEOUT_US)) != SERIALCOM_SUCCESS)
         {
-            ROS_ERROR_STREAM("serialcom_receivebyte failed " << err);
-            synch_failure_counter_++;
+            ROS_ERROR_STREAM("serialcom_receivebyte failed " << err << " number " << synch_failure_counter_<< '/' << synch_failure_counter_pos);
+            ++synch_failure_counter_;
             break;
         }
 
@@ -588,9 +603,10 @@ int GPS::readDataFromReceiver()
                     crc_calculated = CalculateBlockCRC32(b, gps_data_.data()); // C++11
 
                     // Compare them to see if valid packet 
+                    // if(crc_from_packet != (crc_calculated))
                     if(crc_from_packet != ByteSwap(crc_calculated))
                     {
-                        ROS_ERROR("CRC does not match (%0x != %0x)", crc_from_packet, crc_calculated);
+                        ROS_ERROR("CRC does not match (%0x != %0x)", crc_from_packet, ByteSwap(crc_calculated));
                     }
                     decode(msg_id);
                     data_ready = 1;
@@ -745,6 +761,7 @@ void GPS::configure()
 
     // GPS should be configured to 9600 and change to 115200 during execution
     char buffer[100];
+    // sprintf(buffer, "COM COM1,%d,N,8,1,N,OFF,ON", OLD_BPS);
     sprintf(buffer, "COM COM1,%d,N,8,1,N,OFF,ON", BPS);
     command(buffer);
     // command("COM COM2,115200,N,8,1,N,OFF,ON");
@@ -808,6 +825,14 @@ void GPS::receiveDataFromGPS(novatel_gps::GpsXYZ *output)
     output->velocity.velocity.x = velocity_[0];
     output->velocity.velocity.y = velocity_[1];
     output->velocity.velocity.z = velocity_[2];
+
+    output->position.covariance[0] = sigma_position_[0];
+    output->position.covariance[4] = sigma_position_[1];
+    output->position.covariance[8] = sigma_position_[2];
+
+    output->velocity.covariance[0] = sigma_velocity_[0];
+    output->velocity.covariance[4] = sigma_velocity_[1];
+    output->velocity.covariance[8] = sigma_velocity_[2];
 }
 
 
@@ -863,13 +888,13 @@ void GPS::command(const char* command)
     for(i = 0; i < len; i++)
     {
         serialcom_sendbyte(&gps_SerialPortConfig, (unsigned char*) &command[i]);
-        usleep(50);
+        usleep(5000);
     }
 
     serialcom_sendbyte(&gps_SerialPortConfig, (unsigned char*) "\r");
-    usleep(50);
+    usleep(5000);
     serialcom_sendbyte(&gps_SerialPortConfig, (unsigned char*) "\n");
-    usleep(50);
+    usleep(5000);
 }
 
 // Calculate GPS week number and seconds, within 10 minutes of actual time, for initialization

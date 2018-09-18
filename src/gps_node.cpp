@@ -38,16 +38,18 @@ private:
     std::string frameid_;
 
     double desired_freq_;
+    double rate_;
 
 public:
     GpsNode(ros::NodeHandle n) : node_handle_(n), private_node_handle_("~"), calibrate_requested_(false),
-    error_count_(0), slow_count_(0), desired_freq_(50)
+    error_count_(0), slow_count_(0), desired_freq_(20)
     {
         ros::NodeHandle gps_node_handle(node_handle_, "gps");
         private_node_handle_.param("port", port, std::string("/dev/ttyUSB0"));
         private_node_handle_.param("frame_id", frameid_, std::string("gps_frame"));
         // TODO: Remove magical number.
         private_node_handle_.param("log", log_id_, gps.BESTXYZ);
+        private_node_handle_.param("rate", rate_, desired_freq_);
 
         if(log_id_ == gps.BESTPOS)
         {
@@ -77,7 +79,7 @@ public:
     {
         try
         {
-            gps.init(log_id_, port);
+            gps.init(log_id_, port, rate_);
             ROS_INFO("GPS initialized...");
         }
         catch(const std::exception& e)
@@ -94,7 +96,7 @@ public:
 
     bool spin()
     {
-        ros::Rate r(20);
+        ros::Rate r(rate_);
         start();
         while(ros::ok())
         {

@@ -23,7 +23,7 @@ class GPS
 public:
     GPS();
     void init(int log_id);
-    void init(int log_id, std::string port);
+    void init(int log_id, std::string port, double rate);
     void close();
     void receiveDataFromGPS(sensor_msgs::NavSatFix*);
     void receiveDataFromGPS(novatel_gps::GpsXYZ*);
@@ -135,6 +135,8 @@ private:
     int BPS;
     int MAX_BYTES;
     int synch_failure_counter_;
+    int synch_failure_counter_pos;
+    int rate_;
     SERIALPORTCONFIG gps_SerialPortConfig;
 
     // GPS week
