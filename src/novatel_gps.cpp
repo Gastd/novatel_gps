@@ -264,49 +264,10 @@ void GPS::waitReceiveInit()
     std::this_thread::sleep_for( std::chrono::seconds(1) );
 }
 
-void GPS::waitFirstFix()
-{
-    ROS_INFO("Wainting Time to First Fix");
-    ros::Duration(45.0).sleep();
-
-    readDataFromReceiver();
-
-    if((position_status_ == 0)&&(velocity_status_ == 0))
-    {
-        ROS_INFO("Hot Start: First Fix Received");
-        ROS_INFO("Streaming Nav Data");
-    }
-    // else
-    // {
-    //     ROS_WARN("Cold Start detected: First Fix not Received");
-    //     ROS_INFO("Waiting Cold Time to First Fix");
-    //     ros::Duration(15.0).sleep();
-    // }
-}
-
-void GPS::recoverSynch()
-{
-    ROS_INFO("Resetting the log");
-    // flushes both data received but not read, and data written but not transmitted.
-    tcflush(gps_SerialPortConfig.fd, TCIOFLUSH);
-    // request data and override the lastest timestamp
-    command("LOG BESTXYZB ONTIME 0.25");
-    ROS_INFO("Waiting 15 seconds to synch with receiver");
-    ros::Duration(15.0).sleep();
-    // reset counter
-    synch_failure_counter_ = 0;
-}
-
-
 int GPS::readDataFromReceiver()
 {
-    // if(synch_failure_counter_ >= MAX_SYNC_FAIL)
-    //     recoverSynch();
-
-    int i;
     int err;
     int data_ready = 0;
-    ++synch_failure_counter_pos;
     // State machine variables
     int b = 0, bb = 0, s = GPS_SYNC_ST;
 
@@ -318,13 +279,12 @@ int GPS::readDataFromReceiver()
     uint32_t t_ms, crc_from_packet;
 
     // Try to sync with IMU and get latest data packet, up to MAX_BYTES read until failure
-    for(i = 0; (!data_ready)&&(i < MAX_BYTES); i++)
+    for(int i = 0; (!data_ready)&&(i < MAX_BYTES); i++)
     {
         // Read data from serial port
         if((err = serialcom_receivebyte(&gps_SerialPortConfig, &data_read, TIMEOUT_US)) != SERIALCOM_SUCCESS)
         {
-            ROS_ERROR_STREAM("serialcom_receivebyte failed " << err << " number " << synch_failure_counter_<< '/' << synch_failure_counter_pos);
-            ++synch_failure_counter_;
+            ROS_ERROR_STREAM("serialcom_receivebyte failed " << err);
             break;
         }
 
@@ -744,25 +704,26 @@ void GPS::decode(uint16_t msg_id)
         ROS_INFO("with Carrier to Noise Ratio: %f", CN0_);
     }
 }
-
-// void GPS::print_formatted()
-// {
-//     ROS_INFO("GPS: p(%.3lf %.3lf %.3lf) sp(%.3lf %.3lf %.3lf) v(%.3lf %.3lf %.3lf) sv(%.3lf %.3lf %.3lf) status(%lx %lx)",
-//                 longitude_,
-//                 latitude_,
-//                 altitude_,
-//                 sigma_position_[0],
-//                 sigma_position_[1],
-//                 sigma_position_[2],
-//                 velocity_[0],
-//                 velocity_[1],
-//                 velocity_[2],
-//                 sigma_velocity_[0],
-//                 sigma_velocity_[1],
-//                 sigma_velocity_[2],
-//                 (int32_t)position_status_,
-//                 (int32_t)velocity_status_);
-// }
+/*
+void GPS::print_formatted()
+{
+    ROS_INFO("GPS: p(%.3lf %.3lf %.3lf) sp(%.3lf %.3lf %.3lf) v(%.3lf %.3lf %.3lf) sv(%.3lf %.3lf %.3lf) status(%lx %lx)",
+                longitude_,
+                latitude_,
+                altitude_,
+                sigma_position_[0],
+                sigma_position_[1],
+                sigma_position_[2],
+                velocity_[0],
+                velocity_[1],
+                velocity_[2],
+                sigma_velocity_[0],
+                sigma_velocity_[1],
+                sigma_velocity_[2],
+                (int32_t)position_status_,
+                (int32_t)velocity_status_);
+}
+*/
 
 void GPS::close()
 {
@@ -807,9 +768,8 @@ void GPS::configure()
     }
     else
     {
-        char buf[100];
-        sprintf(buf, "SETAPPROXTIME %lu %f", gps_week, gps_secs);
-        command(buf);
+        sprintf(buffer, "SETAPPROXTIME %lu %f", gps_week, gps_secs);
+        command(buffer);
     }
 
     // GPS position should be set approximately (hard coded to LARA/UnB coordinates)

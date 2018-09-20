@@ -47,9 +47,7 @@ private:
     void gtime(uint8_t t_status, uint16_t t_week, uint32_t t_ms);
     void throwSerialComException(int);
     void waitReceiveInit();
-    void waitFirstFix();
-    void print_formatted();
-    void recoverSynch();
+    // void print_formatted();
 
     std::string serial_port_;
     // GPS data packet
