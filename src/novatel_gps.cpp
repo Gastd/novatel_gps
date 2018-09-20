@@ -1,4 +1,6 @@
 #include "novatel_gps.h"
+#include <thread>
+#include <chrono>
 
 /*************************** CRC functions (Firmware Reference Manual, p.32 + APN-030 Rev 1 Application Note) ***************************/
 
@@ -259,7 +261,7 @@ void GPS::init(int log_id, std::string port, double rate = 20)
 void GPS::waitReceiveInit()
 {
     ROS_INFO("Wainting to Receiver initialize");
-    ros::Duration(10.5).sleep();
+    std::this_thread::sleep_for( std::chrono::seconds(1) );
 }
 
 void GPS::waitFirstFix()
@@ -907,13 +909,16 @@ void GPS::command(const char* command)
     for(i = 0; i < len; i++)
     {
         serialcom_sendbyte(&gps_SerialPortConfig, (unsigned char*) &command[i]);
-        usleep(5000);
+        std::this_thread::sleep_for( std::chrono::milliseconds(5000) );
     }
 
+    // Sending Carriage Return character
     serialcom_sendbyte(&gps_SerialPortConfig, (unsigned char*) "\r");
-    usleep(5000);
+    std::this_thread::sleep_for( std::chrono::milliseconds(5000) );
+
+    // Sending Line Feed character
     serialcom_sendbyte(&gps_SerialPortConfig, (unsigned char*) "\n");
-    usleep(5000);
+    std::this_thread::sleep_for( std::chrono::milliseconds(5000) );
 }
 
 // Calculate GPS week number and seconds, within 10 minutes of actual time, for initialization
