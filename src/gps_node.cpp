@@ -20,15 +20,9 @@ private:
     ros::NodeHandle node_handle_;
     ros::NodeHandle private_node_handle_;
     ros::Publisher gps_data_pub_;
-    // ros::ServiceServer calibrate_serv_;
 
     bool running;
 
-    bool autocalibrate_;
-    bool calibrate_requested_;
-    bool calibrated_;
-
-    int error_count_;
     int slow_count_;
     std::string was_slow_;
     std::string error_status_;
@@ -41,8 +35,8 @@ private:
     double rate_;
 
 public:
-    GpsNode(ros::NodeHandle n) : node_handle_(n), private_node_handle_("~"), calibrate_requested_(false),
-    error_count_(0), slow_count_(0), desired_freq_(20)
+    GpsNode(ros::NodeHandle n) : node_handle_(n), private_node_handle_("~"),
+    slow_count_(0), desired_freq_(20)
     {
         ros::NodeHandle gps_node_handle(node_handle_, "gps");
         private_node_handle_.param("port", port, std::string("/dev/ttyUSB0"));
