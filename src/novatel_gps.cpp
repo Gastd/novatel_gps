@@ -180,17 +180,32 @@ void GPS::init(int log_id)
     }
 
     // Configure GPS, set baudrate to 115200 bps and reconnect
+    ROS_INFO("Configuring Receiver");
     configure();
 
     // Request GPS data
+    char buf[100];
+    double time_f = static_cast<double>(1.0/rate_);
     if(log_id == BESTPOS)
-        command("LOG BESTPOSB ONTIME 0.05");
+    {
+        sprintf(buf, "LOG BESTPOSB ONTIME %f", time_f);
+        command(buf);
+    }
     if(log_id == BESTXYZ)
-        command("LOG BESTXYZB ONTIME 0.05");
+    {
+        sprintf(buf, "LOG BESTXYZB ONTIME %f", time_f);
+        command(buf);
+    }
     if(log_id == TRACKSTAT)
-        command("LOG TRACKSTATB ONTIME 1");
-
-    waitFirstFix();
+    {
+        sprintf(buf, "LOG TRACKSTATB ONTIME %f", time_f);
+        command(buf);
+    }
+    if(log_id == SATXYZ)
+    {
+        sprintf(buf, "LOG SATXYZB ONTIME %f", time_f);
+        command(buf);
+    }
 }
 
 void GPS::init(int log_id, std::string port, double rate = 20)
@@ -232,6 +247,11 @@ void GPS::init(int log_id, std::string port, double rate = 20)
     if(log_id == TRACKSTAT)
     {
         sprintf(buf, "LOG TRACKSTATB ONTIME %f", time_f);
+        command(buf);
+    }
+    if(log_id == SATXYZ)
+    {
+        sprintf(buf, "LOG SATXYZB ONTIME %f", time_f);
         command(buf);
     }
 }
@@ -603,10 +623,9 @@ int GPS::readDataFromReceiver()
                     crc_calculated = CalculateBlockCRC32(b, gps_data_.data()); // C++11
 
                     // Compare them to see if valid packet 
-                    // if(crc_from_packet != (crc_calculated))
                     if(crc_from_packet != ByteSwap(crc_calculated))
                     {
-                        ROS_ERROR("CRC does not match (%0x != %0x)", crc_from_packet, ByteSwap(crc_calculated));
+                        // ROS_ERROR("CRC does not match (%0x != %0x)", crc_from_packet, ByteSwap(crc_calculated));
                     }
                     decode(msg_id);
                     data_ready = 1;
@@ -659,11 +678,11 @@ void GPS::decode(uint16_t msg_id)
         memcpy((void*)&number_sat_track_, (void*)&gps_data_[BXYZ_SV], sizeof(uint8_t));
         memcpy((void*)&number_sat_sol_, (void*)&gps_data_[BXYZ_SOLSV], sizeof(uint8_t));
 
-        ROS_INFO("Position Solution Status = %d", position_status_);
-        ROS_INFO("Velocity Solution Status = %d", velocity_status_);
+        // ROS_INFO("Position Solution Status = %d", position_status_);
+        // ROS_INFO("Velocity Solution Status = %d", velocity_status_);
 
-        ROS_INFO("Sat = %d", number_sat_track_);
-        ROS_INFO("Sat sol = %d", number_sat_sol_);
+        // ROS_INFO("Sat = %d", number_sat_track_);
+        // ROS_INFO("Sat sol = %d", number_sat_sol_);
     }
     if(msg_id == BESTPOS)
     {
