@@ -13,10 +13,23 @@ add_message_files(
   GpsXYZ.msg
   gps_position.msg
   gps_velocity.msg
+  LogAll.msg
+  PosType.msg
+  Range.msg
+  SatXYZInformation.msg
+  SolStat.msg
+  TrackStat.msg
+  GpsTimeStat.msg
+  MsgHeader.msg
+  RangeInformation.msg
+  ReceiverStat.msg
+  SatXYZ.msg
+  TrackStatChannel.msg
 )
 
 generate_messages(
   DEPENDENCIES
+  std_msgs
   geometry_msgs
 )
 
