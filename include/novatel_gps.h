@@ -10,6 +10,7 @@
 #include "novatel_gps/MsgHeader.h"
 #include "novatel_gps/SatXYZ.h"
 #include "novatel_gps/TrackStat.h"
+#include "novatel_gps/Range.h"
 #include "novatel_gps/LogAll.h"
 
 // Serial Port Headers (serialcom-termios)
@@ -55,6 +56,7 @@ private:
     novatel_gps::MsgHeader msg_header;
     novatel_gps::SatXYZ satellites;
     novatel_gps::TrackStat tracking;
+    novatel_gps::Range pseudorange;
 
     std::string serial_port_;
     // GPS data packet
@@ -239,6 +241,19 @@ private:
     int TRACKSTAT_REJECT;
     int TRACKSTAT_PSRW;
     int TRACKSTAT_OFFSET;
+
+    /* RANGE */
+    int RANGE_OBS;
+    int RANGE_PRN;
+    int RANGE_PSR;
+    int RANGE_PSR_STD;
+    int RANGE_ADR;
+    int RANGE_ADR_STD;
+    int RANGE_DOPPLER;
+    int RANGE_CNo;
+    int RANGE_LOCKTIME;
+    int RANGE_TRKSTART;
+    int RANGE_OFFSET;
 
     // Multi-byte sizes
     int S_MSG_ID;

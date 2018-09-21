@@ -153,6 +153,19 @@ GPS::GPS() : GPS_PACKET_SIZE(200),
     TRACKSTAT_PSRW      (D_HDR_LEN + 52),
     TRACKSTAT_OFFSET    (40),
 
+    // RANGE Log, Firmware Reference Manual pg. 403
+    RANGE_OBS       (D_HDR_LEN),
+    RANGE_PRN       (D_HDR_LEN + 4),
+    RANGE_PSR       (D_HDR_LEN + 8),
+    RANGE_PSR_STD   (D_HDR_LEN + 16),
+    RANGE_ADR       (D_HDR_LEN + 20),
+    RANGE_ADR_STD   (D_HDR_LEN + 28),
+    RANGE_DOPPLER   (D_HDR_LEN + 32),
+    RANGE_CNo       (D_HDR_LEN + 36),
+    RANGE_LOCKTIME  (D_HDR_LEN + 40),
+    RANGE_TRKSTART  (D_HDR_LEN + 44),
+    RANGE_OFFSET    (44),
+
     S_MSG_ID    (2),
     S_MSG_LEN   (2),
     S_SEQ_NUM   (2),
@@ -166,7 +179,7 @@ GPS::GPS() : GPS_PACKET_SIZE(200),
     TIMEOUT_US(1e4),
     OLD_BPS   (9600),
     BPS       (115200),
-    MAX_BYTES (500),
+    MAX_BYTES (1000),
 
     gps_data_(GPS_PACKET_SIZE, 0),
     velocity_(3, 0),
@@ -230,6 +243,11 @@ void GPS::init(int log_id)
         sprintf(buf, "LOG SATXYZB ONTIME %f", time_f);
         command(buf);
     }
+    if(log_id == RANGE)
+    {
+        sprintf(buf, "LOG RANGEB ONTIME %f", time_f);
+        command(buf);
+    }
 }
 
 void GPS::init(int log_id, std::string port, double rate = 20)
@@ -276,6 +294,11 @@ void GPS::init(int log_id, std::string port, double rate = 20)
     if(log_id == SATXYZ)
     {
         sprintf(buf, "LOG SATXYZB ONTIME %f", time_f);
+        command(buf);
+    }
+    if(log_id == RANGE)
+    {
+        sprintf(buf, "LOG RANGEB ONTIME %f", time_f);
         command(buf);
     }
 }
@@ -427,7 +450,7 @@ int GPS::readDataFromReceiver()
                         {
                             // Merge bytes and process
                             memcpy((void*)&msg_len, (void*)&gps_data_[MSG_LEN], sizeof(uint16_t));
-
+                            // ROS_INFO("Message Length = %d", msg_len);
                             // I was having some problems with (msg_len == 0)...
                             if(msg_len != 0)
                             {
@@ -652,7 +675,6 @@ void GPS::decode(uint16_t msg_id)
     //                 "time_stat " << msg_header.time_stat.time_stat << "\n" << 
     //                 "gps_week " << msg_header.gps_week << "\n" <<
     //                 "gps_ms " << msg_header.gps_ms);
-
     if(msg_id == BESTXYZ)
     {
         memcpy((void*)&position_status_, (void*)&gps_data_[BXYZ_PSTAT], sizeof(uint16_t));
@@ -714,7 +736,7 @@ void GPS::decode(uint16_t msg_id)
         ROS_INFO("Number of satellites %d", number_satellites_);
         satellites.satellites.resize(number_satellites_);
 
-        for (int i = 0; i < number_satellites_; ++i)
+        for(int i = 0; i < number_satellites_; ++i)
         {
             // PRN
             memcpy(&satellites.satellites[i].prn_slot, &gps_data_[SATXYZ_PRN + i*SATXYZ_OFFSET], sizeof(uint32_t));
@@ -737,16 +759,17 @@ void GPS::decode(uint16_t msg_id)
         memcpy(&tracking.cutoff, &gps_data_[TRACKSTAT_CUTOFF], sizeof(float));
         memcpy(&tracking.channels, &gps_data_[TRACKSTAT_CHAN], sizeof(int32_t));
         ROS_INFO("Channels = %d", tracking.channels);
+        tracking.channel.resize(tracking.channels);
 
-        for (int i = 0; i < tracking.channels; ++i)
+        for(int i = 0; i < tracking.channels; ++i)
         {
             memcpy(&tracking.channel[i].prn_slot, &gps_data_[TRACKSTAT_PRN + i*TRACKSTAT_OFFSET], sizeof(int16_t));
             memcpy(&tracking.channel[i].ch_tr_status, &gps_data_[TRACKSTAT_TRKSTAT + i*TRACKSTAT_OFFSET], sizeof(uint32_t));
             memcpy(&tracking.channel[i].psr, &gps_data_[TRACKSTAT_PSR + i*TRACKSTAT_OFFSET], sizeof(double));
             memcpy(&tracking.channel[i].doppler, &gps_data_[TRACKSTAT_DOPPLER + i*TRACKSTAT_OFFSET], sizeof(float));
             memcpy(&tracking.channel[i].cn0, &gps_data_[TRACKSTAT_CNo + i*TRACKSTAT_OFFSET], sizeof(float));
-            memcpy(&tracking.channel[i].cn0, &gps_data_[TRACKSTAT_CNo + i*TRACKSTAT_OFFSET], sizeof(float));
-            memcpy(&tracking.channel[i].cn0, &gps_data_[TRACKSTAT_CNo + i*TRACKSTAT_OFFSET], sizeof(float));
+            // memcpy(&tracking.channel[i].cn0, &gps_data_[TRACKSTAT_CNo + i*TRACKSTAT_OFFSET], sizeof(float));
+            // memcpy(&tracking.channel[i].cn0, &gps_data_[TRACKSTAT_CNo + i*TRACKSTAT_OFFSET], sizeof(float));
             // ROS_INFO("Satellite: %d", prn_);
             // ROS_INFO("with Pseudorange: %f", psr_);
             // ROS_INFO("with Doppler: %f", doppler_);
@@ -755,10 +778,29 @@ void GPS::decode(uint16_t msg_id)
         // ROS_INFO("Solution Status = %d", solution_status_);
         // ROS_INFO("Position Type = %d", position_type_);
     }
-    // if(msg_id == RANGE)
-    // {
+    if(msg_id == RANGE)
+    {
+        memcpy(&pseudorange.obs, &gps_data_[RANGE_OBS], sizeof(uint16_t));
+        ROS_INFO("Number of observations: %d", pseudorange.obs);
+        pseudorange.ranges.resize(pseudorange.obs);
 
-    // }
+        for(int i = 0; i < pseudorange.obs; ++i)
+        {
+            memcpy(&pseudorange.ranges[i].prn_slot, &gps_data_[RANGE_PRN + i*RANGE_OFFSET], sizeof(uint16_t));
+
+            memcpy(&pseudorange.ranges[i].psr, &gps_data_[RANGE_PSR + i*RANGE_OFFSET], sizeof(double));
+            memcpy(&pseudorange.ranges[i].psr_std, &gps_data_[RANGE_PSR_STD + i*RANGE_OFFSET], sizeof(float));
+
+            memcpy(&pseudorange.ranges[i].adr, &gps_data_[RANGE_ADR + i*RANGE_OFFSET], sizeof(double));
+            memcpy(&pseudorange.ranges[i].adr_std, &gps_data_[RANGE_ADR_STD + i*RANGE_OFFSET], sizeof(float));
+
+            memcpy(&pseudorange.ranges[i].doppler, &gps_data_[RANGE_DOPPLER + i*RANGE_OFFSET], sizeof(float));
+
+            memcpy(&pseudorange.ranges[i].c_no, &gps_data_[RANGE_CNo + i*RANGE_OFFSET], sizeof(float));
+            memcpy(&pseudorange.ranges[i].locktime, &gps_data_[RANGE_LOCKTIME + i*RANGE_OFFSET], sizeof(float));
+            memcpy(&pseudorange.ranges[i].ch_tr_status, &gps_data_[RANGE_TRKSTART + i*RANGE_OFFSET], sizeof(uint32_t));
+        }
+    }
 }
 /*
 void GPS::print_formatted()
