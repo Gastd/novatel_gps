@@ -57,7 +57,7 @@ inline uint32_t CalculateBlockCRC32
 
 // GPS Class methods
 
-GPS::GPS() : GPS_PACKET_SIZE(200),
+GPS::GPS() : GPS_PACKET_SIZE(700),
     serial_port_("/dev/ttyUSB0"),
     gps_week(0),
     gps_secs(0),
@@ -768,8 +768,9 @@ void GPS::decode(uint16_t msg_id)
             memcpy(&tracking.channel[i].psr, &gps_data_[TRACKSTAT_PSR + i*TRACKSTAT_OFFSET], sizeof(double));
             memcpy(&tracking.channel[i].doppler, &gps_data_[TRACKSTAT_DOPPLER + i*TRACKSTAT_OFFSET], sizeof(float));
             memcpy(&tracking.channel[i].cn0, &gps_data_[TRACKSTAT_CNo + i*TRACKSTAT_OFFSET], sizeof(float));
-            // memcpy(&tracking.channel[i].cn0, &gps_data_[TRACKSTAT_CNo + i*TRACKSTAT_OFFSET], sizeof(float));
-            // memcpy(&tracking.channel[i].cn0, &gps_data_[TRACKSTAT_CNo + i*TRACKSTAT_OFFSET], sizeof(float));
+            memcpy(&tracking.channel[i].locktime, &gps_data_[TRACKSTAT_LOCKTIME + i*TRACKSTAT_OFFSET], sizeof(float));
+            memcpy(&tracking.channel[i].psr_res, &gps_data_[TRACKSTAT_PSRRES + i*TRACKSTAT_OFFSET], sizeof(float));
+            memcpy(&tracking.channel[i].psr_weight, &gps_data_[TRACKSTAT_PSRW + i*TRACKSTAT_OFFSET], sizeof(float));
             // ROS_INFO("Satellite: %d", prn_);
             // ROS_INFO("with Pseudorange: %f", psr_);
             // ROS_INFO("with Doppler: %f", doppler_);
