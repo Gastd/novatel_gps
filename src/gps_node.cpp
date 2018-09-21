@@ -5,6 +5,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/NavSatFix.h>
 #include <novatel_gps/GpsXYZ.h>
+#include <novatel_gps/LogAll.h>
 
 #include "novatel_gps.h"
 
@@ -14,6 +15,7 @@ private:
     GPS gps;
     sensor_msgs::NavSatFix gps_reading_;
     novatel_gps::GpsXYZ gps_xyz_reading_;
+    novatel_gps::LogAll log;
 
     std::string port;
 
@@ -54,15 +56,14 @@ public:
             gps_reading_.header.frame_id = frameid_;
             gps_reading_.status.service = sensor_msgs::NavSatStatus::SERVICE_GPS;
         }
-        if(log_id_ == gps.BESTXYZ)
+        else if(log_id_ == gps.BESTXYZ)
         {
             // init the publisher
             gps_data_pub_ = gps_node_handle.advertise<novatel_gps::GpsXYZ>("cart", 10);
         }
-        if(log_id_ == gps.BESTXYZ)
+        else
         {
-            // init the publisher
-            gps_data_pub_ = gps_node_handle.advertise<novatel_gps::GpsXYZ>("cart", 10);
+            gps_data_pub_ = gps_node_handle.advertise<novatel_gps::LogAll>("all", 10);
         }
 
         // calibrate_serv_ = gps_node_handle.advertiseService("calibrate", &GpsNode::calibrate, this);
@@ -106,8 +107,10 @@ public:
         getData();
         if(log_id_ == gps.BESTPOS)
             gps_data_pub_.publish(gps_reading_);
-        if(log_id_ == gps.BESTXYZ)
+        else if(log_id_ == gps.BESTXYZ)
             gps_data_pub_.publish(gps_xyz_reading_);
+        else
+            gps_data_pub_.publish(log);
     }
 
     void getData()
@@ -117,9 +120,13 @@ public:
             gps.receiveDataFromGPS(&gps_reading_);
             gps_reading_.header.stamp = ros::Time::now();
         }
-        if(log_id_ == gps.BESTXYZ)
+        else if(log_id_ == gps.BESTXYZ)
         {
             gps.receiveDataFromGPS(&gps_xyz_reading_);
+        }
+        else
+        {
+            gps.receiveDataFromGPS(&log);
         }
     }
 

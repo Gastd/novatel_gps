@@ -135,6 +135,7 @@ GPS::GPS() : GPS_PACKET_SIZE(200),
     SATXYZ_CLKCORR      (D_HDR_LEN + 40),
     SATXYZ_IONCORR      (D_HDR_LEN + 48),
     SATXYZ_TRPCORR      (D_HDR_LEN + 56),
+    SATXYZ_OFFSET       (68),
 
     // TRACKSTAT Log, Firmware Reference Manual pg. 568
     TRACKSTAT_SOLSTAT   (D_HDR_LEN),
@@ -629,8 +630,6 @@ int GPS::readDataFromReceiver()
     return data_ready;
 }
 
-
-
 void GPS::decode(uint16_t msg_id)
 {
     ROS_INFO("Message ID = %u", msg_id);
@@ -712,14 +711,24 @@ void GPS::decode(uint16_t msg_id)
     if(msg_id == SATXYZ)
     {
         memcpy((void*)&number_satellites_, (void*)&gps_data_[SATXYZ_NSAT], sizeof(uint32_t));
-        memcpy((void*)&gps_prn_, (void*)&gps_data_[SATXYZ_PRN], sizeof(uint32_t));
+        ROS_INFO("Number of satellites %d", number_satellites_);
+        satellites.satellites.resize(number_satellites_);
 
-        memcpy((void*)&x_, (void*)&gps_data_[SATXYZ_X], sizeof(double));
-        memcpy((void*)&y_, (void*)&gps_data_[SATXYZ_Y], sizeof(double));
-        memcpy((void*)&z_, (void*)&gps_data_[SATXYZ_Z], sizeof(double));
-        memcpy((void*)&clk_correction_, (void*)&gps_data_[SATXYZ_CLKCORR], sizeof(double));
-        memcpy((void*)&ion_correction_, (void*)&gps_data_[SATXYZ_IONCORR], sizeof(double));
-        memcpy((void*)&trp_correction_, (void*)&gps_data_[SATXYZ_TRPCORR], sizeof(double));
+        for (int i = 0; i < number_satellites_; ++i)
+        {
+            // PRN
+            memcpy(&satellites.satellites[i].prn_slot, &gps_data_[SATXYZ_PRN + i*SATXYZ_OFFSET], sizeof(uint32_t));
+
+            // Satellite position
+            memcpy(&satellites.satellites[i].position.x, &gps_data_[SATXYZ_X + i*SATXYZ_OFFSET], sizeof(double));
+            memcpy(&satellites.satellites[i].position.y, &gps_data_[SATXYZ_Y + i*SATXYZ_OFFSET], sizeof(double));
+            memcpy(&satellites.satellites[i].position.z, &gps_data_[SATXYZ_Z + i*SATXYZ_OFFSET], sizeof(double));
+
+            // Corrections
+            memcpy(&satellites.satellites[i].clk_corr, &gps_data_[SATXYZ_CLKCORR + i*SATXYZ_OFFSET], sizeof(double));
+            memcpy(&satellites.satellites[i].ion_corr, &gps_data_[SATXYZ_IONCORR + i*SATXYZ_OFFSET], sizeof(double));
+            memcpy(&satellites.satellites[i].trop_corr, &gps_data_[SATXYZ_TRPCORR + i*SATXYZ_OFFSET], sizeof(double));
+        }
     }
     if(msg_id == TRACKSTAT)
     {
@@ -819,6 +828,11 @@ void GPS::configure()
     // GPS position should be set approximately (hard coded to LARA/UnB coordinates)
     command("SETAPPROXPOS -15.765824 -47.872109 1024");
     // command("SETAPPROXPOS -15.791372 -48.0227546 1178");
+}
+
+void GPS::receiveDataFromGPS(novatel_gps::LogAll* output)
+{
+    readDataFromReceiver();
 }
 
 void GPS::receiveDataFromGPS(sensor_msgs::NavSatFix *output)
