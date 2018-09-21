@@ -64,6 +64,7 @@ private:
     std::vector<uint8_t> gps_data_;
     // uint8_t gps_data_[GPS_PACKET_SIZE];
 
+    uint8_t time_stat_;
     double status_;
     uint16_t position_status_;    // TO DO: implement gps_state, gps_p_status, v_status
     // uint16_t position_type_;    // TO DO: implement gps_state, gps_p_status, v_status

@@ -694,10 +694,100 @@ void GPS::decode(uint16_t msg_id)
     memcpy(&msg_header.msg_len, &gps_data_[D_MSG_LEN], sizeof(uint16_t));
     memcpy(&msg_header.seq, &gps_data_[D_SEQ], sizeof(uint16_t));
     memcpy(&msg_header.idle_t, &gps_data_[D_IDLE_T], sizeof(uint8_t));
-    memcpy(&msg_header.time_stat.time_stat, &gps_data_[D_TIME_ST], sizeof(uint8_t));
+    memcpy(&time_stat_, &gps_data_[D_TIME_ST], sizeof(uint8_t));
     memcpy(&msg_header.gps_week, &gps_data_[D_G_WEEK], sizeof(uint16_t));
     memcpy(&msg_header.gps_ms, &gps_data_[D_G_MS], sizeof(uint16_t));
     memcpy(&msg_header.rcv_stat_n, &gps_data_[D_RCV_ST], sizeof(uint32_t));
+
+    // Nible 0
+    msg_header.rcv_stat.error = (msg_header.rcv_stat_n & 0x00000001);
+    msg_header.rcv_stat.temp_err = ((msg_header.rcv_stat_n & 0x00000002) >> 1);
+    msg_header.rcv_stat.vol_err = ((msg_header.rcv_stat_n & 0x00000004) >> 2);
+    msg_header.rcv_stat.ant_pwr_err = ((msg_header.rcv_stat_n & 0x00000008) >> 3);
+
+    // Nible 1
+    msg_header.rcv_stat.ant_open_err = ((msg_header.rcv_stat_n & 0x00000020) >> 5);
+    msg_header.rcv_stat.ant_short_err = ((msg_header.rcv_stat_n & 0x00000040) >> 6);
+    msg_header.rcv_stat.cpu_over = ((msg_header.rcv_stat_n & 0x00000080) >> 7);
+
+    // Nible 2
+    msg_header.rcv_stat.com1_ovr_err = ((msg_header.rcv_stat_n & 0x00000100) >> 8);
+    msg_header.rcv_stat.com2_ovr_err = ((msg_header.rcv_stat_n & 0x00000200) >> 9);
+    msg_header.rcv_stat.com3_ovr_err = ((msg_header.rcv_stat_n & 0x00000400) >> 10);
+    msg_header.rcv_stat.usb_ovr_err  = ((msg_header.rcv_stat_n & 0x00000800) >> 11);
+
+    // Nible 4
+    msg_header.rcv_stat.rf1_err  = ((msg_header.rcv_stat_n & 0x00008000) >> 15);
+    msg_header.rcv_stat.rf2_err  = ((msg_header.rcv_stat_n & 0x00020000) >> 17);
+    msg_header.rcv_stat.alm_utc_valid  = ((msg_header.rcv_stat_n & 0x00040000) >> 18);
+    msg_header.rcv_stat.pos_sol_err  = ((msg_header.rcv_stat_n & 0x00080000) >> 19);
+
+    // Nible 5
+    msg_header.rcv_stat.pos_fixed  = ((msg_header.rcv_stat_n & 0x00100000) >> 20);
+    msg_header.rcv_stat.clk_st_err  = ((msg_header.rcv_stat_n & 0x00200000) >> 21);
+    msg_header.rcv_stat.clk_err  = ((msg_header.rcv_stat_n & 0x00400000) >> 22);
+    msg_header.rcv_stat.osc_ext  = ((msg_header.rcv_stat_n & 0x00800000) >> 23);
+
+    // Nible 7
+    msg_header.rcv_stat.soft_err  = ((msg_header.rcv_stat_n & 0x01000000) >> 24);
+    msg_header.rcv_stat.aux3_err  = ((msg_header.rcv_stat_n & 0x20000000) >> 29);
+    msg_header.rcv_stat.aux2_err  = ((msg_header.rcv_stat_n & 0x40000000) >> 30);
+    msg_header.rcv_stat.aux1_err  = ((msg_header.rcv_stat_n & 0x80000000) >> 31);
+
+    switch(time_stat_)
+    {
+        case novatel_gps::GpsTimeStat::UNKNOWN:
+        {
+            msg_header.time_stat.time_stat = novatel_gps::GpsTimeStat::UNKNOWN;
+            break;
+        }
+        case novatel_gps::GpsTimeStat::APPROXIMATE:
+        {
+            msg_header.time_stat.time_stat = novatel_gps::GpsTimeStat::APPROXIMATE;
+            break;
+        }
+        case novatel_gps::GpsTimeStat::COARSEADJUSTING:
+        {
+            msg_header.time_stat.time_stat = novatel_gps::GpsTimeStat::COARSEADJUSTING;
+            break;
+        }
+        case novatel_gps::GpsTimeStat::COARSE:
+        {
+            msg_header.time_stat.time_stat = novatel_gps::GpsTimeStat::COARSE;
+            break;
+        }
+        case novatel_gps::GpsTimeStat::COARSESTEERING:
+        {
+            msg_header.time_stat.time_stat = novatel_gps::GpsTimeStat::COARSESTEERING;
+            break;
+        }
+        case novatel_gps::GpsTimeStat::FREEWHEELING:
+        {
+            msg_header.time_stat.time_stat = novatel_gps::GpsTimeStat::FREEWHEELING;
+            break;
+        }
+        case novatel_gps::GpsTimeStat::FINEADJUSTING:
+        {
+            msg_header.time_stat.time_stat = novatel_gps::GpsTimeStat::FINEADJUSTING;
+            break;
+        }
+        case novatel_gps::GpsTimeStat::FINE:
+        {
+            msg_header.time_stat.time_stat = novatel_gps::GpsTimeStat::FINE;
+            break;
+        }
+        case novatel_gps::GpsTimeStat::FINESTEERING:
+        {
+            msg_header.time_stat.time_stat = novatel_gps::GpsTimeStat::FINESTEERING;
+            break;
+        }
+        case novatel_gps::GpsTimeStat::SATTIME:
+        {
+            msg_header.time_stat.time_stat = novatel_gps::GpsTimeStat::SATTIME;
+            break;
+        }
+    }
+
     // ROS_INFO_STREAM("msg_id " << msg_header.msg_id << "\n" << 
     //                 "msg len " << msg_header.msg_len << "\n" << 
     //                 "seq " << msg_header.seq << "\n" << 

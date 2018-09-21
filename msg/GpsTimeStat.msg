@@ -10,15 +10,15 @@
 # 200 SATTIME Time from satellite. This is only used in logs containing satellite data such as ephemeris and almanac
 
 
-uint32 UNKNOWN            = 20
-uint32 APPROXIMATE        = 60
-uint32 COARSEADJUSTING    = 80
-uint32 COARSE             = 100
-uint32 COARSESTEERING     = 120
-uint32 FREEWHEELING       = 130
-uint32 FINEADJUSTING      = 140
-uint32 FINE               = 160
-uint32 FINESTEERING       = 180
-uint32 SATTIME            = 200
+uint8 UNKNOWN            = 20
+uint8 APPROXIMATE        = 60
+uint8 COARSEADJUSTING    = 80
+uint8 COARSE             = 100
+uint8 COARSESTEERING     = 120
+uint8 FREEWHEELING       = 130
+uint8 FINEADJUSTING      = 140
+uint8 FINE               = 160
+uint8 FINESTEERING       = 180
+uint8 SATTIME            = 200
 
-uint32 time_stat
+uint8 time_stat
