@@ -7,6 +7,7 @@
 #include "ros/ros.h"
 #include "sensor_msgs/NavSatFix.h"
 #include "novatel_gps/GpsXYZ.h"
+#include "novatel_gps/MsgHeader.h"
 
 // Serial Port Headers (serialcom-termios)
 #include "serialcom.h"
@@ -30,12 +31,10 @@ public:
     ~GPS();
 
     /* Log Message IDs */
-    const int BESTPOS = 42;
-    // const int GPGGA   = 218;
-    // const int GPGSA   = 221;
-    // const int GPRMC   = 225;
-    const int BESTXYZ = 241;
-    const int SATXYZ  = 270;
+    const int BESTPOS   = 42;
+    const int BESTXYZ   = 241;
+    const int RANGE     = 43;
+    const int SATXYZ    = 270;
     const int TRACKSTAT = 83;
 
 private:
@@ -48,6 +47,8 @@ private:
     void throwSerialComException(int);
     void waitReceiveInit();
     // void print_formatted();
+
+    novatel_gps::MsgHeader msg_header;
 
     std::string serial_port_;
     // GPS data packet
@@ -147,6 +148,20 @@ private:
     int D_SYNC2;
     int D_HDR_LEN;
 
+    /* Message Header */
+    uint16_t D_HDR;
+    uint16_t D_MSG_ID;
+    uint16_t D_MSG_TP;
+    uint16_t D_PORT_ADD;
+    uint16_t D_MSG_LEN;
+    uint16_t D_SEQ;
+    uint16_t D_IDLE_T;
+    uint16_t D_TIME_ST;
+    uint16_t D_G_WEEK;
+    uint16_t D_G_MS;
+    uint16_t D_RCV_ST;
+    uint16_t D_RCV_SW_V;
+
     /* BESTPOS */
     int BESTPOS_SOLSTAT;
     int BESTPOS_POSTYPE;
@@ -208,10 +223,15 @@ private:
     int TRACKSTAT_CUTOFF;
     int TRACKSTAT_CHAN;
     int TRACKSTAT_PRN;
-    int TRACKSTAT_TRK_STAT;
+    int TRACKSTAT_TRKSTAT;
     int TRACKSTAT_PSR;
     int TRACKSTAT_DOPPLER;
-    int TRACKSTAT_CN0;
+    int TRACKSTAT_CNo;
+    int TRACKSTAT_LOCKTIME;
+    int TRACKSTAT_PSRRES;
+    int TRACKSTAT_REJECT;
+    int TRACKSTAT_PSRW;
+    int TRACKSTAT_OFFSET;
 
     // Multi-byte sizes
     int S_MSG_ID;

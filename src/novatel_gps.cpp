@@ -67,68 +67,90 @@ GPS::GPS() : GPS_PACKET_SIZE(200),
     D_SYNC2(0x12),
     D_HDR_LEN(28),
 
-    // TODO: Where did these values come from?
-    BXYZ_PSTAT   (D_HDR_LEN),
-    BXYZ_PTYPE   (D_HDR_LEN + 4),
-    BXYZ_PX      (D_HDR_LEN + 8),
-    BXYZ_PY      (D_HDR_LEN + 16),
-    BXYZ_PZ      (D_HDR_LEN + 24),
-    BXYZ_sPX     (D_HDR_LEN + 32),
-    BXYZ_sPY     (D_HDR_LEN + 36),
-    BXYZ_sPZ     (D_HDR_LEN + 40),
-    BXYZ_VSTAT   (D_HDR_LEN + 44),
-    BXYZ_VTYPE   (D_HDR_LEN + 48),
-    BXYZ_VX      (D_HDR_LEN + 52),
-    BXYZ_VY      (D_HDR_LEN + 60),
-    BXYZ_VZ      (D_HDR_LEN + 68),
-    BXYZ_sVX     (D_HDR_LEN + 76),
-    BXYZ_sVY     (D_HDR_LEN + 80),
-    BXYZ_sVZ     (D_HDR_LEN + 84),
-    BXYZ_STNID   (D_HDR_LEN + 88),
-    BXYZ_VLATE   (D_HDR_LEN + 92),
-    BXYZ_DIFFAGE (D_HDR_LEN + 96),
-    BXYZ_SOLAGE  (D_HDR_LEN + 92),
-    BXYZ_SV      (D_HDR_LEN + 92),
-    BXYZ_SOLSV   (D_HDR_LEN + 92),
+    // Message Header, Firmware Reference Manual pg. 23
+    D_HDR       (3),
+    D_MSG_ID    (4),
+    D_MSG_TP    (6),
+    D_PORT_ADD  (7),
+    D_MSG_LEN   (8),
+    D_SEQ       (10),
+    D_IDLE_T    (12),
+    D_TIME_ST   (13),
+    D_G_WEEK    (14),
+    D_G_MS      (16),
+    D_RCV_ST    (20),
+    D_RCV_SW_V  (26),
 
-    BESTPOS_SOLSTAT    (D_HDR_LEN),
-    BESTPOS_POSTYPE    (D_HDR_LEN + 4),
-    BESTPOS_LAT        (D_HDR_LEN + 8),
-    BESTPOS_LONG       (D_HDR_LEN + 16),
-    BESTPOS_HGT        (D_HDR_LEN + 24),
-    BESTPOS_UND        (D_HDR_LEN + 32),
-    BESTPOS_DATUMID    (D_HDR_LEN + 36),
-    BESTPOS_SLAT       (D_HDR_LEN + 40),
-    BESTPOS_SLON       (D_HDR_LEN + 44),
-    BESTPOS_SHGT       (D_HDR_LEN + 48),
-    BESTPOS_STNID      (D_HDR_LEN + 52),
-    BESTPOS_DIFFAGE    (D_HDR_LEN + 56),
-    BESTPOS_SOLAGE     (D_HDR_LEN + 60),
-    BESTPOS_SV         (D_HDR_LEN + 64),
-    BESTPOS_SOLNSV     (D_HDR_LEN + 65),
-    BESTPOS_GGL1       (D_HDR_LEN + 66),
-    BESTPOS_GGL1L2     (D_HDR_LEN + 67),
-    BESTPOS_EXTSOLSTAT (D_HDR_LEN + 69),
-    BESTPOS_SIGMASK    (D_HDR_LEN + 71),
+    // BESTXYZ Log, Firmware Reference Manual pg. 264
+    BXYZ_PSTAT      (D_HDR_LEN),
+    BXYZ_PTYPE      (D_HDR_LEN + 4),
+    BXYZ_PX         (D_HDR_LEN + 8),
+    BXYZ_PY         (D_HDR_LEN + 16),
+    BXYZ_PZ         (D_HDR_LEN + 24),
+    BXYZ_sPX        (D_HDR_LEN + 32),
+    BXYZ_sPY        (D_HDR_LEN + 36),
+    BXYZ_sPZ        (D_HDR_LEN + 40),
+    BXYZ_VSTAT      (D_HDR_LEN + 44),
+    BXYZ_VTYPE      (D_HDR_LEN + 48),
+    BXYZ_VX         (D_HDR_LEN + 52),
+    BXYZ_VY         (D_HDR_LEN + 60),
+    BXYZ_VZ         (D_HDR_LEN + 68),
+    BXYZ_sVX        (D_HDR_LEN + 76),
+    BXYZ_sVY        (D_HDR_LEN + 80),
+    BXYZ_sVZ        (D_HDR_LEN + 84),
+    BXYZ_STNID      (D_HDR_LEN + 88),
+    BXYZ_VLATE      (D_HDR_LEN + 92),
+    BXYZ_DIFFAGE    (D_HDR_LEN + 96),
+    BXYZ_SOLAGE     (D_HDR_LEN + 100),
+    BXYZ_SV         (D_HDR_LEN + 104),
+    BXYZ_SOLSV      (D_HDR_LEN + 106),
 
-    SATXYZ_NSAT        (D_HDR_LEN + 8),
-    SATXYZ_PRN         (D_HDR_LEN + 12),
-    SATXYZ_X           (D_HDR_LEN + 16),
-    SATXYZ_Y           (D_HDR_LEN + 24),
-    SATXYZ_Z           (D_HDR_LEN + 32),
-    SATXYZ_CLKCORR     (D_HDR_LEN + 40),
-    SATXYZ_IONCORR     (D_HDR_LEN + 48),
-    SATXYZ_TRPCORR     (D_HDR_LEN + 56),
+    // BESTPOS Log, Firmware Reference Manual pg. 256
+    BESTPOS_SOLSTAT     (D_HDR_LEN),
+    BESTPOS_POSTYPE     (D_HDR_LEN + 4),
+    BESTPOS_LAT         (D_HDR_LEN + 8),
+    BESTPOS_LONG        (D_HDR_LEN + 16),
+    BESTPOS_HGT         (D_HDR_LEN + 24),
+    BESTPOS_UND         (D_HDR_LEN + 32),
+    BESTPOS_DATUMID     (D_HDR_LEN + 36),
+    BESTPOS_SLAT        (D_HDR_LEN + 40),
+    BESTPOS_SLON        (D_HDR_LEN + 44),
+    BESTPOS_SHGT        (D_HDR_LEN + 48),
+    BESTPOS_STNID       (D_HDR_LEN + 52),
+    BESTPOS_DIFFAGE     (D_HDR_LEN + 56),
+    BESTPOS_SOLAGE      (D_HDR_LEN + 60),
+    BESTPOS_SV          (D_HDR_LEN + 64),
+    BESTPOS_SOLNSV      (D_HDR_LEN + 65),
+    BESTPOS_GGL1        (D_HDR_LEN + 66),
+    BESTPOS_GGL1L2      (D_HDR_LEN + 67),
+    BESTPOS_EXTSOLSTAT  (D_HDR_LEN + 69),
+    BESTPOS_SIGMASK     (D_HDR_LEN + 71),
 
-    TRACKSTAT_SOLSTAT  (D_HDR_LEN),
-    TRACKSTAT_POSTYPE  (D_HDR_LEN + 4),
-    TRACKSTAT_CUTOFF   (D_HDR_LEN + 8),
-    TRACKSTAT_CHAN     (D_HDR_LEN + 12),
-    TRACKSTAT_PRN      (D_HDR_LEN + 16),
-    TRACKSTAT_TRK_STAT (D_HDR_LEN + 20),
-    TRACKSTAT_PSR      (D_HDR_LEN + 24),
-    TRACKSTAT_DOPPLER  (D_HDR_LEN + 32),
-    TRACKSTAT_CN0      (D_HDR_LEN + 36),
+    // SATXYZ Log, Firmware Reference Manual pg. 562
+    SATXYZ_NSAT         (D_HDR_LEN + 8),
+    SATXYZ_PRN          (D_HDR_LEN + 12),
+    SATXYZ_X            (D_HDR_LEN + 16),
+    SATXYZ_Y            (D_HDR_LEN + 24),
+    SATXYZ_Z            (D_HDR_LEN + 32),
+    SATXYZ_CLKCORR      (D_HDR_LEN + 40),
+    SATXYZ_IONCORR      (D_HDR_LEN + 48),
+    SATXYZ_TRPCORR      (D_HDR_LEN + 56),
+
+    // TRACKSTAT Log, Firmware Reference Manual pg. 568
+    TRACKSTAT_SOLSTAT   (D_HDR_LEN),
+    TRACKSTAT_POSTYPE   (D_HDR_LEN + 4),
+    TRACKSTAT_CUTOFF    (D_HDR_LEN + 8),
+    TRACKSTAT_CHAN      (D_HDR_LEN + 12),
+    TRACKSTAT_PRN       (D_HDR_LEN + 16),
+    TRACKSTAT_TRKSTAT   (D_HDR_LEN + 20),
+    TRACKSTAT_PSR       (D_HDR_LEN + 24),
+    TRACKSTAT_DOPPLER   (D_HDR_LEN + 32),
+    TRACKSTAT_CNo       (D_HDR_LEN + 36),
+    TRACKSTAT_LOCKTIME  (D_HDR_LEN + 40),
+    TRACKSTAT_PSRRES    (D_HDR_LEN + 44),
+    TRACKSTAT_REJECT    (D_HDR_LEN + 48),
+    TRACKSTAT_PSRW      (D_HDR_LEN + 52),
+    TRACKSTAT_OFFSET    (40),
 
     S_MSG_ID    (2),
     S_MSG_LEN   (2),
@@ -144,7 +166,6 @@ GPS::GPS() : GPS_PACKET_SIZE(200),
     OLD_BPS   (9600),
     BPS       (115200),
     MAX_BYTES (500),
-    synch_failure_counter_(0),
 
     gps_data_(GPS_PACKET_SIZE, 0),
     velocity_(3, 0),
@@ -261,7 +282,7 @@ void GPS::init(int log_id, std::string port, double rate = 20)
 void GPS::waitReceiveInit()
 {
     ROS_INFO("Wainting to Receiver initialize");
-    std::this_thread::sleep_for( std::chrono::seconds(1) );
+    std::this_thread::sleep_for( std::chrono::seconds(11) );
 }
 
 int GPS::readDataFromReceiver()
@@ -608,11 +629,31 @@ int GPS::readDataFromReceiver()
     return data_ready;
 }
 
+
+
 void GPS::decode(uint16_t msg_id)
 {
     ROS_INFO("Message ID = %u", msg_id);
     ROS_ASSERT_MSG(sizeof(double) == 8, "sizeof(double) != 8, check your compiler");
     ROS_ASSERT_MSG(sizeof(float) == 4, "sizeof(double) != 4, check your compiler");
+
+    // Reading message header
+    memcpy(&msg_header.msg_id, &gps_data_[D_MSG_ID], sizeof(uint16_t));
+    memcpy(&msg_header.msg_len, &gps_data_[D_MSG_LEN], sizeof(uint16_t));
+    memcpy(&msg_header.seq, &gps_data_[D_SEQ], sizeof(uint16_t));
+    memcpy(&msg_header.idle_t, &gps_data_[D_IDLE_T], sizeof(uint8_t));
+    memcpy(&msg_header.time_stat.time_stat, &gps_data_[D_TIME_ST], sizeof(uint8_t));
+    memcpy(&msg_header.gps_week, &gps_data_[D_G_WEEK], sizeof(uint16_t));
+    memcpy(&msg_header.gps_ms, &gps_data_[D_G_MS], sizeof(uint16_t));
+    memcpy(&msg_header.rcv_stat_n, &gps_data_[D_RCV_ST], sizeof(uint32_t));
+    // ROS_INFO_STREAM("msg_id " << msg_header.msg_id << "\n" << 
+    //                 "msg len " << msg_header.msg_len << "\n" << 
+    //                 "seq " << msg_header.seq << "\n" << 
+    //                 "idle_t " << (int)msg_header.idle_t << "\n" << 
+    //                 "time_stat " << msg_header.time_stat.time_stat << "\n" << 
+    //                 "gps_week " << msg_header.gps_week << "\n" <<
+    //                 "gps_ms " << msg_header.gps_ms);
+
     if(msg_id == BESTXYZ)
     {
         memcpy((void*)&position_status_, (void*)&gps_data_[BXYZ_PSTAT], sizeof(uint16_t));
@@ -676,7 +717,6 @@ void GPS::decode(uint16_t msg_id)
         memcpy((void*)&x_, (void*)&gps_data_[SATXYZ_X], sizeof(double));
         memcpy((void*)&y_, (void*)&gps_data_[SATXYZ_Y], sizeof(double));
         memcpy((void*)&z_, (void*)&gps_data_[SATXYZ_Z], sizeof(double));
-
         memcpy((void*)&clk_correction_, (void*)&gps_data_[SATXYZ_CLKCORR], sizeof(double));
         memcpy((void*)&ion_correction_, (void*)&gps_data_[SATXYZ_IONCORR], sizeof(double));
         memcpy((void*)&trp_correction_, (void*)&gps_data_[SATXYZ_TRPCORR], sizeof(double));
@@ -689,10 +729,10 @@ void GPS::decode(uint16_t msg_id)
         memcpy((void*)&channels_, (void*)&gps_data_[TRACKSTAT_CHAN], sizeof(int32_t));
 
         memcpy((void*)&prn_, (void*)&gps_data_[TRACKSTAT_PRN], sizeof(int16_t));
-        memcpy((void*)&trk_stat_, (void*)&gps_data_[TRACKSTAT_TRK_STAT], sizeof(uint32_t));
+        memcpy((void*)&trk_stat_, (void*)&gps_data_[TRACKSTAT_TRKSTAT], sizeof(uint32_t));
         memcpy((void*)&psr_, (void*)&gps_data_[TRACKSTAT_PSR], sizeof(double));
         memcpy((void*)&doppler_, (void*)&gps_data_[TRACKSTAT_DOPPLER], sizeof(float));
-        memcpy((void*)&CN0_, (void*)&gps_data_[TRACKSTAT_CN0], sizeof(float));
+        memcpy((void*)&CN0_, (void*)&gps_data_[TRACKSTAT_CNo], sizeof(float));
 
         ROS_INFO("Solution Status = %d", solution_status_);
         ROS_INFO("Position Type = %d", position_type_);
@@ -703,6 +743,10 @@ void GPS::decode(uint16_t msg_id)
         ROS_INFO("with Doppler: %f", doppler_);
         ROS_INFO("with Carrier to Noise Ratio: %f", CN0_);
     }
+    // if(msg_id == RANGE)
+    // {
+
+    // }
 }
 /*
 void GPS::print_formatted()
@@ -869,16 +913,16 @@ void GPS::command(const char* command)
     for(i = 0; i < len; i++)
     {
         serialcom_sendbyte(&gps_SerialPortConfig, (unsigned char*) &command[i]);
-        std::this_thread::sleep_for( std::chrono::milliseconds(5000) );
+        std::this_thread::sleep_for( std::chrono::milliseconds(5) );
     }
 
     // Sending Carriage Return character
     serialcom_sendbyte(&gps_SerialPortConfig, (unsigned char*) "\r");
-    std::this_thread::sleep_for( std::chrono::milliseconds(5000) );
+    std::this_thread::sleep_for( std::chrono::milliseconds(5) );
 
     // Sending Line Feed character
     serialcom_sendbyte(&gps_SerialPortConfig, (unsigned char*) "\n");
-    std::this_thread::sleep_for( std::chrono::milliseconds(5000) );
+    std::this_thread::sleep_for( std::chrono::milliseconds(5) );
 }
 
 // Calculate GPS week number and seconds, within 10 minutes of actual time, for initialization
