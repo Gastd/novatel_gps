@@ -16,14 +16,14 @@ uint32 ch_tr_status
 # 6 L1 Steering
 # 7 L1 Frequency-lock loop
 
-uint16 L1 IDLE = 0
-uint16 L1 SKY _SEARCH= 1
-uint16 L1 WIDE_PULL_IN = 2
-uint16 L1 NARROW_PULL_IN = 3
-uint16 L1 PLL = 4
-uint16 L1 REACQUISITION = 5
-uint16 L1 STEERING = 6
-uint16 L1 FLL = 7
+uint16 L1_IDLE = 0
+uint16 L1_SKY_SEARCH= 1
+uint16 L1_WIDE_PULL_IN = 2
+uint16 L1_NARROW_PULL_IN = 3
+uint16 L1_PLL = 4
+uint16 L1_REACQUISITION = 5
+uint16 L1_STEERING = 6
+uint16 L1_FLL = 7
 
 # Tracking State
 uint16 trck_state
