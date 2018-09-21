@@ -40,10 +40,10 @@ bool parity_known
 # Correlator Type Codes
 # 0 N/A
 # 1 Standard correlator: spacing = 1 chip
-# 2 Narrow Correlator®: spacing < 1 chip
+# 2 Narrow Correlator: spacing < 1 chip
 # 4 Pulse Aperture Correlator (PAC)
 
-uint16 NA = 0
+uint16 CORRELATOR_NA = 0
 uint16 STANDARD_CORRELATOR = 1
 uint16 NARROW_CORRELATOR = 2
 uint16 PAC = 4
@@ -140,7 +140,7 @@ uint32 LOWPOWER = 12
 uint32 OBSL2 = 13
 uint32 NOIONOCORR = 16
 uint32 NOTUSED = 16
-uint32 NA = 99
+uint32 REJECT_NA = 99
 uint32 BAD_INTEGRITY = 100
 
 # Range reject code from pseudorange filter
