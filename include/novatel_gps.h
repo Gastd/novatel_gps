@@ -8,6 +8,8 @@
 #include "sensor_msgs/NavSatFix.h"
 #include "novatel_gps/GpsXYZ.h"
 #include "novatel_gps/MsgHeader.h"
+#include "novatel_gps/SatXYZ.h"
+#include "novatel_gps/LogAll.h"
 
 // Serial Port Headers (serialcom-termios)
 #include "serialcom.h"
@@ -28,6 +30,7 @@ public:
     void close();
     void receiveDataFromGPS(sensor_msgs::NavSatFix*);
     void receiveDataFromGPS(novatel_gps::GpsXYZ*);
+    void receiveDataFromGPS(novatel_gps::LogAll*);
     ~GPS();
 
     /* Log Message IDs */
@@ -49,6 +52,7 @@ private:
     // void print_formatted();
 
     novatel_gps::MsgHeader msg_header;
+    novatel_gps::SatXYZ satellites;
 
     std::string serial_port_;
     // GPS data packet
@@ -216,6 +220,7 @@ private:
     int SATXYZ_CLKCORR;
     int SATXYZ_IONCORR;
     int SATXYZ_TRPCORR;
+    int SATXYZ_OFFSET;
 
     /* TRACKSTAT */
     int TRACKSTAT_SOLSTAT;
