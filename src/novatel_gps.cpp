@@ -248,6 +248,21 @@ void GPS::init(int log_id)
         sprintf(buf, "LOG RANGEB ONTIME %f", time_f);
         command(buf);
     }
+    if(log_id == -1)
+    {
+        std::this_thread::sleep_for( std::chrono::milliseconds(5) );
+        sprintf(buf, "LOG BESTXYZB ONTIME %f", time_f);
+        command(buf);
+        std::this_thread::sleep_for( std::chrono::milliseconds(5) );
+        sprintf(buf, "LOG TRACKSTATB ONTIME %f", time_f);
+        command(buf);
+        std::this_thread::sleep_for( std::chrono::milliseconds(5) );
+        sprintf(buf, "LOG SATXYZB ONTIME %f", time_f);
+        command(buf);
+        std::this_thread::sleep_for( std::chrono::milliseconds(5) );
+        sprintf(buf, "LOG RANGEB ONTIME %f", time_f);
+        command(buf);
+    }
 }
 
 void GPS::init(int log_id, std::string port, double rate = 20)
@@ -298,6 +313,21 @@ void GPS::init(int log_id, std::string port, double rate = 20)
     }
     if(log_id == RANGE)
     {
+        sprintf(buf, "LOG RANGEB ONTIME %f", time_f);
+        command(buf);
+    }
+    if(log_id == -1)
+    {
+        std::this_thread::sleep_for( std::chrono::milliseconds(5) );
+        sprintf(buf, "LOG BESTXYZB ONTIME %f", time_f);
+        command(buf);
+        std::this_thread::sleep_for( std::chrono::milliseconds(5) );
+        sprintf(buf, "LOG TRACKSTATB ONTIME %f", time_f);
+        command(buf);
+        std::this_thread::sleep_for( std::chrono::milliseconds(5) );
+        sprintf(buf, "LOG SATXYZB ONTIME %f", time_f);
+        command(buf);
+        std::this_thread::sleep_for( std::chrono::milliseconds(5) );
         sprintf(buf, "LOG RANGEB ONTIME %f", time_f);
         command(buf);
     }
@@ -733,7 +763,7 @@ void GPS::decode(uint16_t msg_id)
     if(msg_id == SATXYZ)
     {
         memcpy((void*)&number_satellites_, (void*)&gps_data_[SATXYZ_NSAT], sizeof(uint32_t));
-        ROS_INFO("Number of satellites %d", number_satellites_);
+        // ROS_INFO("Number of satellites %d", number_satellites_);
         satellites.satellites.resize(number_satellites_);
 
         for(int i = 0; i < number_satellites_; ++i)
@@ -758,7 +788,7 @@ void GPS::decode(uint16_t msg_id)
         memcpy(&tracking.position_type, &gps_data_[TRACKSTAT_POSTYPE], sizeof(uint16_t));
         memcpy(&tracking.cutoff, &gps_data_[TRACKSTAT_CUTOFF], sizeof(float));
         memcpy(&tracking.channels, &gps_data_[TRACKSTAT_CHAN], sizeof(int32_t));
-        ROS_INFO("Channels = %d", tracking.channels);
+        // ROS_INFO("Channels = %d", tracking.channels);
         tracking.channel.resize(tracking.channels);
 
         for(int i = 0; i < tracking.channels; ++i)
@@ -876,9 +906,29 @@ void GPS::configure()
     // command("SETAPPROXPOS -15.791372 -48.0227546 1178");
 }
 
-void GPS::receiveDataFromGPS(novatel_gps::LogAll* output)
+void GPS::receiveDataFromGPS(novatel_gps::LogAll* output_logall, novatel_gps::GpsXYZ *output_xyz)
 {
     readDataFromReceiver();
+    output_logall->msg_header = this->msg_header;
+    output_logall->range_log = pseudorange;
+    output_logall->sat_log = satellites;
+    output_logall->track_log = tracking;
+
+    output_xyz->position.position.x = x_;
+    output_xyz->position.position.y = y_;
+    output_xyz->position.position.z = z_;
+
+    output_xyz->velocity.velocity.x = velocity_[0];
+    output_xyz->velocity.velocity.y = velocity_[1];
+    output_xyz->velocity.velocity.z = velocity_[2];
+
+    output_xyz->position.covariance[0] = sigma_position_[0];
+    output_xyz->position.covariance[4] = sigma_position_[1];
+    output_xyz->position.covariance[8] = sigma_position_[2];
+
+    output_xyz->velocity.covariance[0] = sigma_velocity_[0];
+    output_xyz->velocity.covariance[4] = sigma_velocity_[1];
+    output_xyz->velocity.covariance[8] = sigma_velocity_[2];
 }
 
 void GPS::receiveDataFromGPS(sensor_msgs::NavSatFix *output)

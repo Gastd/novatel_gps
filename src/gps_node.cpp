@@ -21,7 +21,7 @@ private:
 
     ros::NodeHandle node_handle_;
     ros::NodeHandle private_node_handle_;
-    ros::Publisher gps_data_pub_;
+    ros::Publisher gps_data_pub_, gps_data_pub_logall_;
 
     bool running;
 
@@ -61,9 +61,10 @@ public:
             // init the publisher
             gps_data_pub_ = gps_node_handle.advertise<novatel_gps::GpsXYZ>("cart", 10);
         }
-        else
+        else if(log_id_ == -1)
         {
-            gps_data_pub_ = gps_node_handle.advertise<novatel_gps::LogAll>("all", 10);
+            gps_data_pub_ = gps_node_handle.advertise<novatel_gps::GpsXYZ>("cart", 10);
+            gps_data_pub_logall_ = gps_node_handle.advertise<novatel_gps::LogAll>("all", 10);
         }
 
         // calibrate_serv_ = gps_node_handle.advertiseService("calibrate", &GpsNode::calibrate, this);
@@ -110,7 +111,10 @@ public:
         else if(log_id_ == gps.BESTXYZ)
             gps_data_pub_.publish(gps_xyz_reading_);
         else
-            gps_data_pub_.publish(log);
+        {
+            gps_data_pub_.publish(gps_xyz_reading_);
+            gps_data_pub_logall_.publish(log);
+        }
     }
 
     void getData()
@@ -126,7 +130,7 @@ public:
         }
         else
         {
-            gps.receiveDataFromGPS(&log);
+            gps.receiveDataFromGPS(&log, &gps_xyz_reading_);
         }
     }
 

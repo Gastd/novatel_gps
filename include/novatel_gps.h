@@ -32,7 +32,7 @@ public:
     void close();
     void receiveDataFromGPS(sensor_msgs::NavSatFix*);
     void receiveDataFromGPS(novatel_gps::GpsXYZ*);
-    void receiveDataFromGPS(novatel_gps::LogAll*);
+    void receiveDataFromGPS(novatel_gps::LogAll*, novatel_gps::GpsXYZ*);
     ~GPS();
 
     /* Log Message IDs */
