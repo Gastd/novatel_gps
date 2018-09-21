@@ -9,6 +9,7 @@
 #include "novatel_gps/GpsXYZ.h"
 #include "novatel_gps/MsgHeader.h"
 #include "novatel_gps/SatXYZ.h"
+#include "novatel_gps/TrackStat.h"
 #include "novatel_gps/LogAll.h"
 
 // Serial Port Headers (serialcom-termios)
@@ -53,6 +54,7 @@ private:
 
     novatel_gps::MsgHeader msg_header;
     novatel_gps::SatXYZ satellites;
+    novatel_gps::TrackStat tracking;
 
     std::string serial_port_;
     // GPS data packet

@@ -7,6 +7,6 @@ PosType position_type
 float32 cutoff
 
 # Number of hardware channels with information to follow
-uint32 chans
+uint32 channels
 
-TrackStatChannel[] channels
+TrackStatChannel[] channel

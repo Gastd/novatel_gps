@@ -378,7 +378,7 @@ int GPS::readDataFromReceiver()
                         else
                         {
                             // Invalid HDR_LEN, reset
-                            ROS_ERROR_STREAM("invalid HDR_LEN " << data_read);
+                            ROS_ERROR("invalid HDR_LEN %d", data_read);
                             b = 0;
                             s = GPS_SYNC_ST;
                         }
@@ -732,25 +732,28 @@ void GPS::decode(uint16_t msg_id)
     }
     if(msg_id == TRACKSTAT)
     {
-        memcpy((void*)&solution_status_, (void*)&gps_data_[TRACKSTAT_SOLSTAT], sizeof(uint16_t));
-        memcpy((void*)&position_type_, (void*)&gps_data_[TRACKSTAT_POSTYPE], sizeof(uint16_t));
-        memcpy((void*)&cutoff_, (void*)&gps_data_[TRACKSTAT_CUTOFF], sizeof(float));
-        memcpy((void*)&channels_, (void*)&gps_data_[TRACKSTAT_CHAN], sizeof(int32_t));
+        memcpy(&tracking.solution_status, &gps_data_[TRACKSTAT_SOLSTAT], sizeof(uint16_t));
+        memcpy(&tracking.position_type, &gps_data_[TRACKSTAT_POSTYPE], sizeof(uint16_t));
+        memcpy(&tracking.cutoff, &gps_data_[TRACKSTAT_CUTOFF], sizeof(float));
+        memcpy(&tracking.channels, &gps_data_[TRACKSTAT_CHAN], sizeof(int32_t));
+        ROS_INFO("Channels = %d", tracking.channels);
 
-        memcpy((void*)&prn_, (void*)&gps_data_[TRACKSTAT_PRN], sizeof(int16_t));
-        memcpy((void*)&trk_stat_, (void*)&gps_data_[TRACKSTAT_TRKSTAT], sizeof(uint32_t));
-        memcpy((void*)&psr_, (void*)&gps_data_[TRACKSTAT_PSR], sizeof(double));
-        memcpy((void*)&doppler_, (void*)&gps_data_[TRACKSTAT_DOPPLER], sizeof(float));
-        memcpy((void*)&CN0_, (void*)&gps_data_[TRACKSTAT_CNo], sizeof(float));
-
-        ROS_INFO("Solution Status = %d", solution_status_);
-        ROS_INFO("Position Type = %d", position_type_);
-        ROS_INFO("Channels = %d", channels_);
-
-        ROS_INFO("Satellite: %d", prn_);
-        ROS_INFO("with Pseudorange: %f", psr_);
-        ROS_INFO("with Doppler: %f", doppler_);
-        ROS_INFO("with Carrier to Noise Ratio: %f", CN0_);
+        for (int i = 0; i < tracking.channels; ++i)
+        {
+            memcpy(&tracking.channel[i].prn_slot, &gps_data_[TRACKSTAT_PRN + i*TRACKSTAT_OFFSET], sizeof(int16_t));
+            memcpy(&tracking.channel[i].ch_tr_status, &gps_data_[TRACKSTAT_TRKSTAT + i*TRACKSTAT_OFFSET], sizeof(uint32_t));
+            memcpy(&tracking.channel[i].psr, &gps_data_[TRACKSTAT_PSR + i*TRACKSTAT_OFFSET], sizeof(double));
+            memcpy(&tracking.channel[i].doppler, &gps_data_[TRACKSTAT_DOPPLER + i*TRACKSTAT_OFFSET], sizeof(float));
+            memcpy(&tracking.channel[i].cn0, &gps_data_[TRACKSTAT_CNo + i*TRACKSTAT_OFFSET], sizeof(float));
+            memcpy(&tracking.channel[i].cn0, &gps_data_[TRACKSTAT_CNo + i*TRACKSTAT_OFFSET], sizeof(float));
+            memcpy(&tracking.channel[i].cn0, &gps_data_[TRACKSTAT_CNo + i*TRACKSTAT_OFFSET], sizeof(float));
+            // ROS_INFO("Satellite: %d", prn_);
+            // ROS_INFO("with Pseudorange: %f", psr_);
+            // ROS_INFO("with Doppler: %f", doppler_);
+            // ROS_INFO("with Carrier to Noise Ratio: %f", CN0_);
+        }
+        // ROS_INFO("Solution Status = %d", solution_status_);
+        // ROS_INFO("Position Type = %d", position_type_);
     }
     // if(msg_id == RANGE)
     // {
