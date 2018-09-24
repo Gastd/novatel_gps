@@ -126,10 +126,13 @@ public:
         }
         else if(log_id_ == gps.BESTXYZ)
         {
+            gps_xyz_reading_.header.stamp = ros::Time::now();
             gps.receiveDataFromGPS(&gps_xyz_reading_);
         }
         else
         {
+            log.header.stamp = ros::Time::now();
+            gps_xyz_reading_.header.stamp = ros::Time::now();
             gps.receiveDataFromGPS(&log, &gps_xyz_reading_);
         }
     }
