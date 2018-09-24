@@ -696,8 +696,8 @@ void GPS::decode(uint16_t msg_id)
     memcpy(&msg_header.idle_t, &gps_data_[D_IDLE_T], sizeof(uint8_t));
     memcpy(&time_stat_, &gps_data_[D_TIME_ST], sizeof(uint8_t));
     memcpy(&msg_header.gps_week, &gps_data_[D_G_WEEK], sizeof(uint16_t));
-    memcpy(&msg_header.gps_ms, &gps_data_[D_G_MS], sizeof(uint16_t));
-    memcpy(&msg_header.rcv_stat_n, &gps_data_[D_RCV_ST], sizeof(uint32_t));
+    memcpy(&msg_header.gps_ms, &gps_data_[D_G_MS], sizeof(uint32_t));
+    memcpy(&msg_header.rcv_stat_n, &gps_data_[D_RCV_ST], sizeof(uint16_t));
 
     // Nible 0
     msg_header.rcv_stat.error = (msg_header.rcv_stat_n & 0x00000001);
@@ -719,7 +719,7 @@ void GPS::decode(uint16_t msg_id)
     // Nible 4
     msg_header.rcv_stat.rf1_err  = ((msg_header.rcv_stat_n & 0x00008000) >> 15);
     msg_header.rcv_stat.rf2_err  = ((msg_header.rcv_stat_n & 0x00020000) >> 17);
-    msg_header.rcv_stat.alm_utc_valid  = ((msg_header.rcv_stat_n & 0x00040000) >> 18);
+    msg_header.rcv_stat.alm_utc_err  = ((msg_header.rcv_stat_n & 0x00040000) >> 18);
     msg_header.rcv_stat.pos_sol_err  = ((msg_header.rcv_stat_n & 0x00080000) >> 19);
 
     // Nible 5
