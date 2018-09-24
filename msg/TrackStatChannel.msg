@@ -37,6 +37,9 @@ bool phase_lock
 # Parity known flag
 bool parity_known
 
+# Code lock flag
+bool code_lock
+
 # Correlator Type Codes
 # 0 N/A
 # 1 Standard correlator: spacing = 1 chip
