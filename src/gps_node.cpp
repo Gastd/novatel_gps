@@ -134,6 +134,9 @@ public:
             log.header.stamp = ros::Time::now();
             gps_xyz_reading_.header.stamp = ros::Time::now();
             gps.receiveDataFromGPS(&log, &gps_xyz_reading_);
+            gps.receiveDataFromGPS(&log, &gps_xyz_reading_);
+            gps.receiveDataFromGPS(&log, &gps_xyz_reading_);
+            gps.receiveDataFromGPS(&log, &gps_xyz_reading_);
         }
     }
 
