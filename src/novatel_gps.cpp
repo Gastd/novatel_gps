@@ -734,59 +734,7 @@ void GPS::decode(uint16_t msg_id)
     msg_header.rcv_stat.aux2_err  = ((msg_header.rcv_stat_n & 0x40000000) >> 30);
     msg_header.rcv_stat.aux1_err  = ((msg_header.rcv_stat_n & 0x80000000) >> 31);
 
-    switch(time_stat_)
-    {
-        case novatel_gps::GpsTimeStat::UNKNOWN:
-        {
-            msg_header.time_stat.time_stat = novatel_gps::GpsTimeStat::UNKNOWN;
-            break;
-        }
-        case novatel_gps::GpsTimeStat::APPROXIMATE:
-        {
-            msg_header.time_stat.time_stat = novatel_gps::GpsTimeStat::APPROXIMATE;
-            break;
-        }
-        case novatel_gps::GpsTimeStat::COARSEADJUSTING:
-        {
-            msg_header.time_stat.time_stat = novatel_gps::GpsTimeStat::COARSEADJUSTING;
-            break;
-        }
-        case novatel_gps::GpsTimeStat::COARSE:
-        {
-            msg_header.time_stat.time_stat = novatel_gps::GpsTimeStat::COARSE;
-            break;
-        }
-        case novatel_gps::GpsTimeStat::COARSESTEERING:
-        {
-            msg_header.time_stat.time_stat = novatel_gps::GpsTimeStat::COARSESTEERING;
-            break;
-        }
-        case novatel_gps::GpsTimeStat::FREEWHEELING:
-        {
-            msg_header.time_stat.time_stat = novatel_gps::GpsTimeStat::FREEWHEELING;
-            break;
-        }
-        case novatel_gps::GpsTimeStat::FINEADJUSTING:
-        {
-            msg_header.time_stat.time_stat = novatel_gps::GpsTimeStat::FINEADJUSTING;
-            break;
-        }
-        case novatel_gps::GpsTimeStat::FINE:
-        {
-            msg_header.time_stat.time_stat = novatel_gps::GpsTimeStat::FINE;
-            break;
-        }
-        case novatel_gps::GpsTimeStat::FINESTEERING:
-        {
-            msg_header.time_stat.time_stat = novatel_gps::GpsTimeStat::FINESTEERING;
-            break;
-        }
-        case novatel_gps::GpsTimeStat::SATTIME:
-        {
-            msg_header.time_stat.time_stat = novatel_gps::GpsTimeStat::SATTIME;
-            break;
-        }
-    }
+    msg_header.time_stat.time_stat = time_stat_;
 
     // ROS_INFO_STREAM("msg_id " << msg_header.msg_id << "\n" << 
     //                 "msg len " << msg_header.msg_len << "\n" << 
