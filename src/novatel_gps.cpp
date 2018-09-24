@@ -447,7 +447,7 @@ int GPS::readDataFromReceiver()
                         if(bb == S_MSG_ID)
                         {
                             // Merge bytes and process
-                            memcpy((void*)&msg_id, (void*)&gps_data_[MSG_ID], sizeof(uint16_t));
+                            memcpy(&msg_id, &gps_data_[MSG_ID], sizeof(uint16_t));
 
                             // Update byte indices
                             bb = 0;
@@ -479,7 +479,7 @@ int GPS::readDataFromReceiver()
                         if(bb == S_MSG_LEN)
                         {
                             // Merge bytes and process
-                            memcpy((void*)&msg_len, (void*)&gps_data_[MSG_LEN], sizeof(uint16_t));
+                            memcpy(&msg_len, &gps_data_[MSG_LEN], sizeof(uint16_t));
                             // ROS_INFO("Message Length = %d", msg_len);
                             // I was having some problems with (msg_len == 0)...
                             if(msg_len != 0)
@@ -508,7 +508,7 @@ int GPS::readDataFromReceiver()
                         if(bb == S_SEQ_NUM)
                         {
                             // Merge bytes and process
-                            //memcpy((void*)&seq_num, (void*)&gps_data_[SEQ_NUM], sizeof(uint16_t));
+                            //memcpy(&seq_num, &gps_data_[SEQ_NUM], sizeof(uint16_t));
 
                             // Update byte indices
                             bb = 0;
@@ -540,7 +540,7 @@ int GPS::readDataFromReceiver()
                         if(bb == S_T_WEEK)
                         {
                             // Merge bytes and process
-                            memcpy((void*)&t_week, (void*)&gps_data_[T_WEEK], sizeof(uint16_t));
+                            memcpy(&t_week, &gps_data_[T_WEEK], sizeof(uint16_t));
 
                             // Update byte indices
                             bb = 0;
@@ -558,7 +558,7 @@ int GPS::readDataFromReceiver()
                         if(bb == S_T_MS)
                         {
                             // Merge bytes and process
-                            memcpy((void*)&t_ms, (void*)&gps_data_[T_MS], sizeof(uint32_t));
+                            memcpy(&t_ms, &gps_data_[T_MS], sizeof(uint32_t));
 
                             // Update byte indices
                             bb = 0;
@@ -576,7 +576,7 @@ int GPS::readDataFromReceiver()
                         if(bb == S_GPS_STATUS)
                         {
                             // Merge bytes and process
-                            memcpy((void*)&(status_), (void*)&gps_data_[GPS_STATUS], sizeof(uint32_t));
+                            memcpy(&(status_), &gps_data_[GPS_STATUS], sizeof(uint32_t));
 
                             // Update byte indices
                             bb = 0;
@@ -609,7 +609,7 @@ int GPS::readDataFromReceiver()
                         if(bb == S_SW_VERS)
                         {
                             // Merge bytes and process
-                            //memcpy((void*)&sw_vers, (void*)&gps_data_[SW_VERS], sizeof(uint16_t));
+                            //memcpy(&sw_vers, &gps_data_[SW_VERS], sizeof(uint16_t));
 
                             // Update byte indices
                             bb = 0;
