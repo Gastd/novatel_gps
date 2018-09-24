@@ -698,6 +698,7 @@ void GPS::decode(uint16_t msg_id)
     memcpy(&msg_header.gps_week, &gps_data_[D_G_WEEK], sizeof(uint16_t));
     memcpy(&msg_header.gps_ms, &gps_data_[D_G_MS], sizeof(uint32_t));
     memcpy(&msg_header.rcv_stat_n, &gps_data_[D_RCV_ST], sizeof(uint16_t));
+    memcpy(&msg_header.rcv_sw_v, &gps_data_[D_RCV_SW_V], sizeof(uint16_t));
 
     // Nible 0
     msg_header.rcv_stat.error = (msg_header.rcv_stat_n & 0x00000001);

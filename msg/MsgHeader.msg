@@ -22,3 +22,6 @@ uint16 gps_ms
 # Receiver Status
 uint32 rcv_stat_n
 ReceiverStat rcv_stat
+
+# Receiver Software Build Number
+uint32 rcv_sw_v
