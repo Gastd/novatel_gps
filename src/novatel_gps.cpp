@@ -653,7 +653,7 @@ int GPS::readDataFromReceiver()
                 {
                     uint32_t crc_calculated;
                     // Grab CRC from packet
-                    crc_from_packet = ((uint32_t)((gps_data_[b+3] << 24) | (gps_data_[b+2] << 16) | (gps_data_[b+1] << 8) | gps_data_[b]));
+                    crc_from_packet = static_cast<uint32_t>((gps_data_[b+3] << 24) | (gps_data_[b+2] << 16) | (gps_data_[b+1] << 8) | gps_data_[b]);
 
                     // Calculate CRC from packet (b = packet size)
                     // crc_calculated = CalculateBlockCRC32(b, &gps_data_[0]); // GAMBIARRA
