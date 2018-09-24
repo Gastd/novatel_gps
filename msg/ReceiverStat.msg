@@ -39,8 +39,8 @@ bool rf1_err
 # RF2 AGC status (error)
 bool rf2_err
 
-# Almanac UTC Valid
-bool alm_utc_valid
+# Almanac UTC (in)Valid
+bool alm_utc_err
 
 # Position solution flag (error)
 bool pos_sol_err
