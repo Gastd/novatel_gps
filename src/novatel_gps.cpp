@@ -833,50 +833,53 @@ void GPS::decode(uint16_t msg_id)
         {
             memcpy(&tracking.channel[i].prn_slot, &gps_data_[TRACKSTAT_PRN + i*TRACKSTAT_OFFSET], sizeof(int16_t));
             memcpy(&tracking.channel[i].ch_tr_status, &gps_data_[TRACKSTAT_TRKSTAT + i*TRACKSTAT_OFFSET], sizeof(uint32_t));
+
             memcpy(&tracking.channel[i].psr, &gps_data_[TRACKSTAT_PSR + i*TRACKSTAT_OFFSET], sizeof(double));
             memcpy(&tracking.channel[i].doppler, &gps_data_[TRACKSTAT_DOPPLER + i*TRACKSTAT_OFFSET], sizeof(float));
+
             memcpy(&tracking.channel[i].cn0, &gps_data_[TRACKSTAT_CNo + i*TRACKSTAT_OFFSET], sizeof(float));
             memcpy(&tracking.channel[i].locktime, &gps_data_[TRACKSTAT_LOCKTIME + i*TRACKSTAT_OFFSET], sizeof(float));
+
             memcpy(&tracking.channel[i].psr_res, &gps_data_[TRACKSTAT_PSRRES + i*TRACKSTAT_OFFSET], sizeof(float));
             memcpy(&tracking.channel[i].psr_weight, &gps_data_[TRACKSTAT_PSRW + i*TRACKSTAT_OFFSET], sizeof(float));
 
-            tracking.channel[i].trck_state          = (tracking.channel[i].ch_tr_status & 0x00000001) |
-                                                      (tracking.channel[i].ch_tr_status & 0x00000002) |
-                                                      (tracking.channel[i].ch_tr_status & 0x00000004) |
-                                                      (tracking.channel[i].ch_tr_status & 0x00000008) |
-                                                      (tracking.channel[i].ch_tr_status & 0x00000010);
+            tracking.channel[i].tracking_status.trck_state          = (tracking.channel[i].ch_tr_status & 0x00000001) |
+                                                                      (tracking.channel[i].ch_tr_status & 0x00000002) |
+                                                                      (tracking.channel[i].ch_tr_status & 0x00000004) |
+                                                                      (tracking.channel[i].ch_tr_status & 0x00000008) |
+                                                                      (tracking.channel[i].ch_tr_status & 0x00000010);
 
-            tracking.channel[i].channel_number      = ((tracking.channel[i].ch_tr_status & 0x00000020) |
-                                                       (tracking.channel[i].ch_tr_status & 0x00000040) |
-                                                       (tracking.channel[i].ch_tr_status & 0x00000080) |
-                                                       (tracking.channel[i].ch_tr_status & 0x00000100) |
-                                                       (tracking.channel[i].ch_tr_status & 0x00000200) >> 5);
+            tracking.channel[i].tracking_status.channel_number      = ((tracking.channel[i].ch_tr_status & 0x00000020) |
+                                                                       (tracking.channel[i].ch_tr_status & 0x00000040) |
+                                                                       (tracking.channel[i].ch_tr_status & 0x00000080) |
+                                                                       (tracking.channel[i].ch_tr_status & 0x00000100) |
+                                                                       (tracking.channel[i].ch_tr_status & 0x00000200) >> 5);
 
-            tracking.channel[i].phase_lock          = ((tracking.channel[i].ch_tr_status & 0x00000400) >> 10);
-            tracking.channel[i].parity_known        = ((tracking.channel[i].ch_tr_status & 0x00000800) >> 11);
-            tracking.channel[i].code_lock           = ((tracking.channel[i].ch_tr_status & 0x00001000) >> 12);
+            tracking.channel[i].tracking_status.phase_lock          = ((tracking.channel[i].ch_tr_status & 0x00000400) >> 10);
+            tracking.channel[i].tracking_status.parity_known        = ((tracking.channel[i].ch_tr_status & 0x00000800) >> 11);
+            tracking.channel[i].tracking_status.code_lock           = ((tracking.channel[i].ch_tr_status & 0x00001000) >> 12);
 
-            tracking.channel[i].correlator_type     = ((tracking.channel[i].ch_tr_status & 0x00002000) |
-                                                       (tracking.channel[i].ch_tr_status & 0x00004000) |
-                                                       (tracking.channel[i].ch_tr_status & 0x00008000) >> 13);
+            tracking.channel[i].tracking_status.correlator_type     = ((tracking.channel[i].ch_tr_status & 0x00002000) |
+                                                                       (tracking.channel[i].ch_tr_status & 0x00004000) |
+                                                                       (tracking.channel[i].ch_tr_status & 0x00008000) >> 13);
 
-            tracking.channel[i].satellite_system    = ((tracking.channel[i].ch_tr_status & 0x00010000) |
-                                                       (tracking.channel[i].ch_tr_status & 0x00020000) |
-                                                       (tracking.channel[i].ch_tr_status & 0x00040000) >> 16);
+            tracking.channel[i].tracking_status.satellite_system    = ((tracking.channel[i].ch_tr_status & 0x00010000) |
+                                                                       (tracking.channel[i].ch_tr_status & 0x00020000) |
+                                                                       (tracking.channel[i].ch_tr_status & 0x00040000) >> 16);
 
-            tracking.channel[i].grouping            = ((tracking.channel[i].ch_tr_status & 0x00100000) >> 20);
+            tracking.channel[i].tracking_status.grouping            = ((tracking.channel[i].ch_tr_status & 0x00100000) >> 20);
 
-            tracking.channel[i].singal_type         = ((tracking.channel[i].ch_tr_status & 0x00200000) |
-                                                       (tracking.channel[i].ch_tr_status & 0x00400000) |
-                                                       (tracking.channel[i].ch_tr_status & 0x00800000) |
-                                                       (tracking.channel[i].ch_tr_status & 0x01000000) |
-                                                       (tracking.channel[i].ch_tr_status & 0x02000000) >> 21);
+            tracking.channel[i].tracking_status.singal_type         = ((tracking.channel[i].ch_tr_status & 0x00200000) |
+                                                                       (tracking.channel[i].ch_tr_status & 0x00400000) |
+                                                                       (tracking.channel[i].ch_tr_status & 0x00800000) |
+                                                                       (tracking.channel[i].ch_tr_status & 0x01000000) |
+                                                                       (tracking.channel[i].ch_tr_status & 0x02000000) >> 21);
 
-            tracking.channel[i].fec                 = ((tracking.channel[i].ch_tr_status & 0x04000000) >> 26);
-            tracking.channel[i].primary_l1          = ((tracking.channel[i].ch_tr_status & 0x08000000) >> 27);
-            tracking.channel[i].half_cycle_added    = ((tracking.channel[i].ch_tr_status & 0x10000000) >> 28);
-            tracking.channel[i].prn_lock            = ((tracking.channel[i].ch_tr_status & 0x40000000) >> 30);
-            tracking.channel[i].channel_assignment  = ((tracking.channel[i].ch_tr_status & 0x80000000) >> 31);
+            tracking.channel[i].tracking_status.fec                 = ((tracking.channel[i].ch_tr_status & 0x04000000) >> 26);
+            tracking.channel[i].tracking_status.primary_l1          = ((tracking.channel[i].ch_tr_status & 0x08000000) >> 27);
+            tracking.channel[i].tracking_status.half_cycle_added    = ((tracking.channel[i].ch_tr_status & 0x10000000) >> 28);
+            tracking.channel[i].tracking_status.prn_lock            = ((tracking.channel[i].ch_tr_status & 0x40000000) >> 30);
+            tracking.channel[i].tracking_status.channel_assignment  = ((tracking.channel[i].ch_tr_status & 0x80000000) >> 31);
             // ROS_INFO("Satellite: %d", prn_);
             // ROS_INFO("with Pseudorange: %f", psr_);
             // ROS_INFO("with Doppler: %f", doppler_);
@@ -906,6 +909,44 @@ void GPS::decode(uint16_t msg_id)
             memcpy(&pseudorange.ranges[i].c_no, &gps_data_[RANGE_CNo + i*RANGE_OFFSET], sizeof(float));
             memcpy(&pseudorange.ranges[i].locktime, &gps_data_[RANGE_LOCKTIME + i*RANGE_OFFSET], sizeof(float));
             memcpy(&pseudorange.ranges[i].ch_tr_status, &gps_data_[RANGE_TRKSTART + i*RANGE_OFFSET], sizeof(uint32_t));
+
+            pseudorange.ranges[i].tracking_status.trck_state          = (pseudorange.ranges[i].ch_tr_status & 0x00000001) |
+                                                                        (pseudorange.ranges[i].ch_tr_status & 0x00000002) |
+                                                                        (pseudorange.ranges[i].ch_tr_status & 0x00000004) |
+                                                                        (pseudorange.ranges[i].ch_tr_status & 0x00000008) |
+                                                                        (pseudorange.ranges[i].ch_tr_status & 0x00000010);
+
+            pseudorange.ranges[i].tracking_status.channel_number      = ((pseudorange.ranges[i].ch_tr_status & 0x00000020) |
+                                                                         (pseudorange.ranges[i].ch_tr_status & 0x00000040) |
+                                                                         (pseudorange.ranges[i].ch_tr_status & 0x00000080) |
+                                                                         (pseudorange.ranges[i].ch_tr_status & 0x00000100) |
+                                                                         (pseudorange.ranges[i].ch_tr_status & 0x00000200) >> 5);
+
+            pseudorange.ranges[i].tracking_status.phase_lock          = ((pseudorange.ranges[i].ch_tr_status & 0x00000400) >> 10);
+            pseudorange.ranges[i].tracking_status.parity_known        = ((pseudorange.ranges[i].ch_tr_status & 0x00000800) >> 11);
+            pseudorange.ranges[i].tracking_status.code_lock           = ((pseudorange.ranges[i].ch_tr_status & 0x00001000) >> 12);
+
+            pseudorange.ranges[i].tracking_status.correlator_type     = ((pseudorange.ranges[i].ch_tr_status & 0x00002000) |
+                                                                         (pseudorange.ranges[i].ch_tr_status & 0x00004000) |
+                                                                         (pseudorange.ranges[i].ch_tr_status & 0x00008000) >> 13);
+
+            pseudorange.ranges[i].tracking_status.satellite_system    = ((pseudorange.ranges[i].ch_tr_status & 0x00010000) |
+                                                                         (pseudorange.ranges[i].ch_tr_status & 0x00020000) |
+                                                                         (pseudorange.ranges[i].ch_tr_status & 0x00040000) >> 16);
+
+            pseudorange.ranges[i].tracking_status.grouping            = ((pseudorange.ranges[i].ch_tr_status & 0x00100000) >> 20);
+
+            pseudorange.ranges[i].tracking_status.singal_type         = ((pseudorange.ranges[i].ch_tr_status & 0x00200000) |
+                                                                         (pseudorange.ranges[i].ch_tr_status & 0x00400000) |
+                                                                         (pseudorange.ranges[i].ch_tr_status & 0x00800000) |
+                                                                         (pseudorange.ranges[i].ch_tr_status & 0x01000000) |
+                                                                         (pseudorange.ranges[i].ch_tr_status & 0x02000000) >> 21);
+
+            pseudorange.ranges[i].tracking_status.fec                 = ((pseudorange.ranges[i].ch_tr_status & 0x04000000) >> 26);
+            pseudorange.ranges[i].tracking_status.primary_l1          = ((pseudorange.ranges[i].ch_tr_status & 0x08000000) >> 27);
+            pseudorange.ranges[i].tracking_status.half_cycle_added    = ((pseudorange.ranges[i].ch_tr_status & 0x10000000) >> 28);
+            pseudorange.ranges[i].tracking_status.prn_lock            = ((pseudorange.ranges[i].ch_tr_status & 0x40000000) >> 30);
+            pseudorange.ranges[i].tracking_status.channel_assignment  = ((pseudorange.ranges[i].ch_tr_status & 0x80000000) >> 31);
         }
     }
 }
