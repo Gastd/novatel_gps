@@ -24,29 +24,29 @@
 # 66 CDGPS a Position solution using CDGPS correction
 
 
-uint32 NONE              = 0
-uint32 FIXEDPOS          = 1
-uint32 FIXEDHEIGHT       = 2
-uint32 DOPPLER_VELOCITY  = 8
-uint32 SINGLE            = 16
-uint32 PSRDIFF           = 17
-uint32 WAAS              = 18
-uint32 PROPAGATED        = 19
-uint32 OMNISTAR          = 20
-uint32 L1_FLOAT          = 32
-uint32 IONOFREE_FLOAT    = 33
-uint32 NARROW_FLOAT      = 34
-uint32 L1_INT            = 48
-uint32 WIDE_INT          = 49
-uint32 NARROW_INT        = 50
-uint32 RTK_DIRECT_INS    = 51
-uint32 INS               = 52
-uint32 INS_PSRSP         = 53
-uint32 INS_PSRDIFF       = 54
-uint32 INS_RTKFLOAT      = 55
-uint32 INS_RTKFIXED      = 56
-uint32 OMNISTAR_HP       = 64
-uint32 OMNISTAR_XP       = 65
-uint32 CDGPS             = 66
+uint8 NONE              = 0
+uint8 FIXEDPOS          = 1
+uint8 FIXEDHEIGHT       = 2
+uint8 DOPPLER_VELOCITY  = 8
+uint8 SINGLE            = 16
+uint8 PSRDIFF           = 17
+uint8 WAAS              = 18
+uint8 PROPAGATED        = 19
+uint8 OMNISTAR          = 20
+uint8 L1_FLOAT          = 32
+uint8 IONOFREE_FLOAT    = 33
+uint8 NARROW_FLOAT      = 34
+uint8 L1_INT            = 48
+uint8 WIDE_INT          = 49
+uint8 NARROW_INT        = 50
+uint8 RTK_DIRECT_INS    = 51
+uint8 INS               = 52
+uint8 INS_PSRSP         = 53
+uint8 INS_PSRDIFF       = 54
+uint8 INS_RTKFLOAT      = 55
+uint8 INS_RTKFIXED      = 56
+uint8 OMNISTAR_HP       = 64
+uint8 OMNISTAR_XP       = 65
+uint8 CDGPS             = 66
 
-uint32 position_type
+uint8 position_type
