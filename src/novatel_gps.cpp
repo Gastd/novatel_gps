@@ -745,30 +745,30 @@ void GPS::decode(uint16_t msg_id)
     //                 "gps_ms " << msg_header.gps_ms);
     if(msg_id == BESTXYZ)
     {
-        memcpy((void*)&position_status_, (void*)&gps_data_[BXYZ_PSTAT], sizeof(uint16_t));
-        memcpy((void*)&position_type_, (void*)&gps_data_[BXYZ_PTYPE], sizeof(uint16_t));
+        memcpy(&position_status_, &gps_data_[BXYZ_PSTAT], sizeof(uint16_t));
+        memcpy(&position_type_, &gps_data_[BXYZ_PTYPE], sizeof(uint16_t));
 
-        memcpy((void*)&x_, (void*)&gps_data_[BXYZ_PX], sizeof(double));
-        memcpy((void*)&y_, (void*)&gps_data_[BXYZ_PY], sizeof(double));
-        memcpy((void*)&z_, (void*)&gps_data_[BXYZ_PZ], sizeof(double));
+        memcpy(&x_, &gps_data_[BXYZ_PX], sizeof(double));
+        memcpy(&y_, &gps_data_[BXYZ_PY], sizeof(double));
+        memcpy(&z_, &gps_data_[BXYZ_PZ], sizeof(double));
 
-        memcpy((void*)&sigma_position_[0], (void*)&gps_data_[BXYZ_sPX], sizeof(float));
-        memcpy((void*)&sigma_position_[1], (void*)&gps_data_[BXYZ_sPY], sizeof(float));
-        memcpy((void*)&sigma_position_[2], (void*)&gps_data_[BXYZ_sPZ], sizeof(float));
+        memcpy(&sigma_position_[0], &gps_data_[BXYZ_sPX], sizeof(float));
+        memcpy(&sigma_position_[1], &gps_data_[BXYZ_sPY], sizeof(float));
+        memcpy(&sigma_position_[2], &gps_data_[BXYZ_sPZ], sizeof(float));
 
-        memcpy((void*)&velocity_status_, (void*)&gps_data_[BXYZ_VSTAT], sizeof(uint16_t));
-        memcpy((void*)&velocity_type_, (void*)&gps_data_[BXYZ_VTYPE], sizeof(uint16_t));
+        memcpy(&velocity_status_, &gps_data_[BXYZ_VSTAT], sizeof(uint16_t));
+        memcpy(&velocity_type_, &gps_data_[BXYZ_VTYPE], sizeof(uint16_t));
 
-        memcpy((void*)&velocity_[0], (void*)&gps_data_[BXYZ_VX], sizeof(double));
-        memcpy((void*)&velocity_[1], (void*)&gps_data_[BXYZ_VY], sizeof(double));
-        memcpy((void*)&velocity_[2], (void*)&gps_data_[BXYZ_VZ], sizeof(double));
+        memcpy(&velocity_[0], &gps_data_[BXYZ_VX], sizeof(double));
+        memcpy(&velocity_[1], &gps_data_[BXYZ_VY], sizeof(double));
+        memcpy(&velocity_[2], &gps_data_[BXYZ_VZ], sizeof(double));
 
-        memcpy((void*)&sigma_velocity_[0], (void*)&gps_data_[BXYZ_sVX], sizeof(float));
-        memcpy((void*)&sigma_velocity_[1], (void*)&gps_data_[BXYZ_sVY], sizeof(float));
-        memcpy((void*)&sigma_velocity_[2], (void*)&gps_data_[BXYZ_sVZ], sizeof(float));
+        memcpy(&sigma_velocity_[0], &gps_data_[BXYZ_sVX], sizeof(float));
+        memcpy(&sigma_velocity_[1], &gps_data_[BXYZ_sVY], sizeof(float));
+        memcpy(&sigma_velocity_[2], &gps_data_[BXYZ_sVZ], sizeof(float));
 
-        memcpy((void*)&number_sat_track_, (void*)&gps_data_[BXYZ_SV], sizeof(uint8_t));
-        memcpy((void*)&number_sat_sol_, (void*)&gps_data_[BXYZ_SOLSV], sizeof(uint8_t));
+        memcpy(&number_sat_track_, &gps_data_[BXYZ_SV], sizeof(uint8_t));
+        memcpy(&number_sat_sol_, &gps_data_[BXYZ_SOLSV], sizeof(uint8_t));
 
         // ROS_INFO("Position Solution Status = %d", position_status_);
         // ROS_INFO("Velocity Solution Status = %d", velocity_status_);
@@ -778,19 +778,19 @@ void GPS::decode(uint16_t msg_id)
     }
     if(msg_id == BESTPOS)
     {
-        memcpy((void*)&solution_status_, (void*)&gps_data_[BESTPOS_SOLSTAT], sizeof(uint16_t));
-        memcpy((void*)&position_type_, (void*)&gps_data_[BESTPOS_POSTYPE], sizeof(uint16_t));
+        memcpy(&solution_status_, &gps_data_[BESTPOS_SOLSTAT], sizeof(uint16_t));
+        memcpy(&position_type_, &gps_data_[BESTPOS_POSTYPE], sizeof(uint16_t));
 
-        memcpy((void*)&latitude_, (void*)&gps_data_[BESTPOS_LAT], sizeof(double));
-        memcpy((void*)&longitude_, (void*)&gps_data_[BESTPOS_LONG], sizeof(double));
-        memcpy((void*)&altitude_, (void*)&gps_data_[BESTPOS_HGT], sizeof(double));
+        memcpy(&latitude_, &gps_data_[BESTPOS_LAT], sizeof(double));
+        memcpy(&longitude_, &gps_data_[BESTPOS_LONG], sizeof(double));
+        memcpy(&altitude_, &gps_data_[BESTPOS_HGT], sizeof(double));
 
-        memcpy((void*)&stdev_latitude_, (void*)&gps_data_[BESTPOS_SLAT], sizeof(float));
-        memcpy((void*)&stdev_longitude_, (void*)&gps_data_[BESTPOS_SLON], sizeof(float));
-        memcpy((void*)&stdev_altitude_, (void*)&gps_data_[BESTPOS_SHGT], sizeof(float));
+        memcpy(&stdev_latitude_, &gps_data_[BESTPOS_SLAT], sizeof(float));
+        memcpy(&stdev_longitude_, &gps_data_[BESTPOS_SLON], sizeof(float));
+        memcpy(&stdev_altitude_, &gps_data_[BESTPOS_SHGT], sizeof(float));
 
-        memcpy((void*)&number_sat_track_, (void*)&gps_data_[BESTPOS_SV], sizeof(uint8_t));
-        memcpy((void*)&number_sat_sol_, (void*)&gps_data_[BESTPOS_SOLNSV], sizeof(uint8_t));
+        memcpy(&number_sat_track_, &gps_data_[BESTPOS_SV], sizeof(uint8_t));
+        memcpy(&number_sat_sol_, &gps_data_[BESTPOS_SOLNSV], sizeof(uint8_t));
 
         ROS_INFO("Sat = %d", number_sat_track_);
         ROS_INFO("Sat sol = %d", number_sat_sol_);
