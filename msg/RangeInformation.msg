@@ -26,3 +26,6 @@ float32 locktime
 
 # Channel tracking status
 uint32 ch_tr_status
+
+# Tracking Status
+TrackingStatus tracking_status

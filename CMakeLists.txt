@@ -25,6 +25,7 @@ add_message_files(
   ReceiverStat.msg
   SatXYZ.msg
   TrackStatChannel.msg
+  TrackingStatus.msg
 )
 
 generate_messages(
