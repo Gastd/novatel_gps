@@ -148,7 +148,7 @@ private:
     SERIALPORTCONFIG gps_SerialPortConfig;
 
     // GPS week
-    unsigned long gps_week;
+    unsigned long gps_week, gps_week_1024;
     double gps_secs;
 
     // Default values

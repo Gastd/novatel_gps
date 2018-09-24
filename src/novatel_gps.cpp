@@ -1014,7 +1014,7 @@ void GPS::configure()
     }
     else
     {
-        sprintf(buffer, "SETAPPROXTIME %lu %f", gps_week, gps_secs);
+        sprintf(buffer, "SETAPPROXTIME %lu %f", gps_week_1024, gps_secs);
         command(buffer);
     }
 
@@ -1174,6 +1174,7 @@ int GPS::getApproxTime()
     // Offset to GPS time and calculate weeks and seconds
     gps_time = cpu_secs - time_diff;
     gps_week = gps_time / secs_in_week;
+    gps_week_1024 = gps_week % 1024;
     gps_secs = gps_time % secs_in_week;
 
     if((gps_week != 0) && (gps_secs != 0))
