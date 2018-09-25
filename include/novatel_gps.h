@@ -16,13 +16,6 @@
 // Serial Port Headers (serialcom-termios)
 #include "serialcom.h"
 
-struct point
-{
-    double x;
-    double y;
-    double z;
-};
-
 class GPS
 {
 public:
@@ -48,10 +41,8 @@ private:
     void command(const char* command);
     int getApproxTime();
     void decode(uint16_t msg_id);
-    void gtime(uint8_t t_status, uint16_t t_week, uint32_t t_ms);
     void throwSerialComException(int);
     void waitReceiveInit();
-    // void print_formatted();
 
     novatel_gps::MsgHeader msg_header_;
     novatel_gps::SatXYZ satellites_;
@@ -62,12 +53,10 @@ private:
     // GPS data packet
     const int GPS_PACKET_SIZE;
     std::vector<uint8_t> gps_data_;
-    // uint8_t gps_data_[GPS_PACKET_SIZE];
 
     uint8_t time_stat_;
     double status_;
     uint16_t position_status_;    // TO DO: implement gps_state, gps_p_status, v_status
-    // uint16_t position_type_;    // TO DO: implement gps_state, gps_p_status, v_status
     uint16_t velocity_status_;
     uint16_t velocity_type_;
     uint16_t solution_status_;
@@ -77,6 +66,7 @@ private:
     double latitude_;
     double longitude_;
     double altitude_;
+
     // standard deviation provided gps receiver
     float  stdev_latitude_;
     double covar_latitude_;
@@ -89,21 +79,9 @@ private:
     std::vector<double> sigma_velocity_;
 
     uint32_t number_satellites_;
-    uint32_t gps_prn_;
     double x_;
     double y_;
     double z_;
-    double clk_correction_;
-    double ion_correction_;
-    double trp_correction_;
-
-    float cutoff_;
-    int32_t channels_;
-    int16_t prn_;
-    uint32_t trk_stat_;
-    double psr_;
-    float doppler_;
-    float CN0_;
 
     enum HEADER_ORDER
     {
@@ -142,8 +120,6 @@ private:
     int OLD_BPS;
     int BPS;
     int MAX_BYTES;
-    int synch_failure_counter_;
-    int synch_failure_counter_pos_;
     int rate_;
     SERIALPORTCONFIG gps_SerialPortConfig_;
 

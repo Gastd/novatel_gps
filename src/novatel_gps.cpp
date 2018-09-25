@@ -745,6 +745,7 @@ void GPS::decode(uint16_t msg_id)
     //                 "time_stat " << msg_header_.time_stat.time_stat << "\n" << 
     //                 "gps_week_ " << msg_header_.gps_week_ << "\n" <<
     //                 "gps_ms " << msg_header_.gps_ms);
+
     if(msg_id == BESTXYZ)
     {
         memcpy(&position_status_, &gps_data_[BXYZ_PSTAT], sizeof(uint16_t));
@@ -1184,10 +1185,3 @@ int GPS::getApproxTime()
     else
         return 0;
 }
-
-void GPS::gtime(uint8_t t_status, uint16_t t_week, uint32_t t_ms)
-{
-    // GPS week number = full week number starting from midnight of the night from January 5 to January 6, 1980
-    // TO DO: figure out what this was for. I think it was supposed to decode time information and know if GPS has valid time
-}
-
