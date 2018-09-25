@@ -1,9 +1,8 @@
 ## USB port
-port: /dev/ttyUSB1
+port: /dev/ttyUSB0
 
 frame_id: gps_frame
 
-rate: 20
+rate: 1
 
-log: 241
-# log: 83
+log: -1
