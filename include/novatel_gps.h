@@ -53,10 +53,10 @@ private:
     void waitReceiveInit();
     // void print_formatted();
 
-    novatel_gps::MsgHeader msg_header;
-    novatel_gps::SatXYZ satellites;
-    novatel_gps::TrackStat tracking;
-    novatel_gps::Range pseudorange;
+    novatel_gps::MsgHeader msg_header_;
+    novatel_gps::SatXYZ satellites_;
+    novatel_gps::TrackStat tracking_;
+    novatel_gps::Range pseudorange_;
 
     std::string serial_port_;
     // GPS data packet
@@ -143,13 +143,13 @@ private:
     int BPS;
     int MAX_BYTES;
     int synch_failure_counter_;
-    int synch_failure_counter_pos;
+    int synch_failure_counter_pos_;
     int rate_;
-    SERIALPORTCONFIG gps_SerialPortConfig;
+    SERIALPORTCONFIG gps_SerialPortConfig_;
 
     // GPS week
-    unsigned long gps_week, gps_week_1024;
-    double gps_secs;
+    unsigned long gps_week_, gps_week_1024_;
+    double gps_secs_;
 
     // Default values
     int D_SYNC0;

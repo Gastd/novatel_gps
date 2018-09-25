@@ -59,8 +59,9 @@ inline uint32_t CalculateBlockCRC32
 
 GPS::GPS() : GPS_PACKET_SIZE(700),
     serial_port_("/dev/ttyUSB0"),
-    gps_week(0),
-    gps_secs(0),
+    gps_week_(0),
+    gps_week_1024_(0),
+    gps_secs_(0),
 
     D_SYNC0(0xAA),
     D_SYNC1(0x44),
@@ -210,7 +211,7 @@ void GPS::init(int log_id)
     waitReceiveInit();
 
     // Init serial port at 9600 bps
-    if((err = serialcom_init(&gps_SerialPortConfig, 1, (char*)serial_port_.c_str(), OLD_BPS)) != SERIALCOM_SUCCESS)
+    if((err = serialcom_init(&gps_SerialPortConfig_, 1, (char*)serial_port_.c_str(), OLD_BPS)) != SERIALCOM_SUCCESS)
     {
         ROS_ERROR_STREAM("serialcom_init failed " << err);
         throwSerialComException(err);
@@ -277,7 +278,7 @@ void GPS::init(int log_id, std::string port, double rate = 20)
     ROS_INFO_STREAM("TIMEOUT_US = " << TIMEOUT_US);
 
     // Init serial port at 9600 bps
-    if((err = serialcom_init(&gps_SerialPortConfig, 1, (char*)serial_port_.c_str(), OLD_BPS)) != SERIALCOM_SUCCESS)
+    if((err = serialcom_init(&gps_SerialPortConfig_, 1, (char*)serial_port_.c_str(), OLD_BPS)) != SERIALCOM_SUCCESS)
     {
         ROS_ERROR_STREAM("serialcom_init failed " << err);
         throwSerialComException(err);
@@ -357,7 +358,7 @@ int GPS::readDataFromReceiver()
     for(int i = 0; (!data_ready)&&(i < MAX_BYTES); i++)
     {
         // Read data from serial port
-        if((err = serialcom_receivebyte(&gps_SerialPortConfig, &data_read, TIMEOUT_US)) != SERIALCOM_SUCCESS)
+        if((err = serialcom_receivebyte(&gps_SerialPortConfig_, &data_read, TIMEOUT_US)) != SERIALCOM_SUCCESS)
         {
             ROS_ERROR_STREAM("serialcom_receivebyte failed " << err);
             break;
@@ -678,7 +679,7 @@ int GPS::readDataFromReceiver()
     }
 
     // Flush port and request more data
-    // tcflush(gps_SerialPortConfig.fd, TCIOFLUSH);
+    // tcflush(gps_SerialPortConfig_.fd, TCIOFLUSH);
     // command("LOG BESTXYZB ONCE");
     return data_ready;
 }
@@ -690,60 +691,60 @@ void GPS::decode(uint16_t msg_id)
     ROS_ASSERT_MSG(sizeof(float) == 4, "sizeof(double) != 4, check your compiler");
 
     // Reading message header
-    memcpy(&msg_header.msg_id, &gps_data_[D_MSG_ID], sizeof(uint16_t));
-    memcpy(&msg_header.msg_len, &gps_data_[D_MSG_LEN], sizeof(uint16_t));
-    memcpy(&msg_header.seq, &gps_data_[D_SEQ], sizeof(uint16_t));
-    memcpy(&msg_header.idle_t, &gps_data_[D_IDLE_T], sizeof(uint8_t));
+    memcpy(&msg_header_.msg_id, &gps_data_[D_MSG_ID], sizeof(uint16_t));
+    memcpy(&msg_header_.msg_len, &gps_data_[D_MSG_LEN], sizeof(uint16_t));
+    memcpy(&msg_header_.seq, &gps_data_[D_SEQ], sizeof(uint16_t));
+    memcpy(&msg_header_.idle_t, &gps_data_[D_IDLE_T], sizeof(uint8_t));
     memcpy(&time_stat_, &gps_data_[D_TIME_ST], sizeof(uint8_t));
-    memcpy(&msg_header.gps_week, &gps_data_[D_G_WEEK], sizeof(uint16_t));
-    memcpy(&msg_header.gps_ms, &gps_data_[D_G_MS], sizeof(uint32_t));
-    memcpy(&msg_header.rcv_stat_n, &gps_data_[D_RCV_ST], sizeof(uint16_t));
-    memcpy(&msg_header.rcv_sw_v, &gps_data_[D_RCV_SW_V], sizeof(uint16_t));
+    memcpy(&msg_header_.gps_week, &gps_data_[D_G_WEEK], sizeof(uint16_t));
+    memcpy(&msg_header_.gps_ms, &gps_data_[D_G_MS], sizeof(uint32_t));
+    memcpy(&msg_header_.rcv_stat_n, &gps_data_[D_RCV_ST], sizeof(uint16_t));
+    memcpy(&msg_header_.rcv_sw_v, &gps_data_[D_RCV_SW_V], sizeof(uint16_t));
 
     // Nible 0
-    msg_header.rcv_stat.error = (msg_header.rcv_stat_n & 0x00000001);
-    msg_header.rcv_stat.temp_err = ((msg_header.rcv_stat_n & 0x00000002) >> 1);
-    msg_header.rcv_stat.vol_err = ((msg_header.rcv_stat_n & 0x00000004) >> 2);
-    msg_header.rcv_stat.ant_pwr_err = ((msg_header.rcv_stat_n & 0x00000008) >> 3);
+    msg_header_.rcv_stat.error = (msg_header_.rcv_stat_n & 0x00000001);
+    msg_header_.rcv_stat.temp_err = ((msg_header_.rcv_stat_n & 0x00000002) >> 1);
+    msg_header_.rcv_stat.vol_err = ((msg_header_.rcv_stat_n & 0x00000004) >> 2);
+    msg_header_.rcv_stat.ant_pwr_err = ((msg_header_.rcv_stat_n & 0x00000008) >> 3);
 
     // Nible 1
-    msg_header.rcv_stat.ant_open_err = ((msg_header.rcv_stat_n & 0x00000020) >> 5);
-    msg_header.rcv_stat.ant_short_err = ((msg_header.rcv_stat_n & 0x00000040) >> 6);
-    msg_header.rcv_stat.cpu_over = ((msg_header.rcv_stat_n & 0x00000080) >> 7);
+    msg_header_.rcv_stat.ant_open_err = ((msg_header_.rcv_stat_n & 0x00000020) >> 5);
+    msg_header_.rcv_stat.ant_short_err = ((msg_header_.rcv_stat_n & 0x00000040) >> 6);
+    msg_header_.rcv_stat.cpu_over = ((msg_header_.rcv_stat_n & 0x00000080) >> 7);
 
     // Nible 2
-    msg_header.rcv_stat.com1_ovr_err = ((msg_header.rcv_stat_n & 0x00000100) >> 8);
-    msg_header.rcv_stat.com2_ovr_err = ((msg_header.rcv_stat_n & 0x00000200) >> 9);
-    msg_header.rcv_stat.com3_ovr_err = ((msg_header.rcv_stat_n & 0x00000400) >> 10);
-    msg_header.rcv_stat.usb_ovr_err  = ((msg_header.rcv_stat_n & 0x00000800) >> 11);
+    msg_header_.rcv_stat.com1_ovr_err = ((msg_header_.rcv_stat_n & 0x00000100) >> 8);
+    msg_header_.rcv_stat.com2_ovr_err = ((msg_header_.rcv_stat_n & 0x00000200) >> 9);
+    msg_header_.rcv_stat.com3_ovr_err = ((msg_header_.rcv_stat_n & 0x00000400) >> 10);
+    msg_header_.rcv_stat.usb_ovr_err  = ((msg_header_.rcv_stat_n & 0x00000800) >> 11);
 
     // Nible 4
-    msg_header.rcv_stat.rf1_err  = ((msg_header.rcv_stat_n & 0x00008000) >> 15);
-    msg_header.rcv_stat.rf2_err  = ((msg_header.rcv_stat_n & 0x00020000) >> 17);
-    msg_header.rcv_stat.alm_utc_err  = ((msg_header.rcv_stat_n & 0x00040000) >> 18);
-    msg_header.rcv_stat.pos_sol_err  = ((msg_header.rcv_stat_n & 0x00080000) >> 19);
+    msg_header_.rcv_stat.rf1_err  = ((msg_header_.rcv_stat_n & 0x00008000) >> 15);
+    msg_header_.rcv_stat.rf2_err  = ((msg_header_.rcv_stat_n & 0x00020000) >> 17);
+    msg_header_.rcv_stat.alm_utc_err  = ((msg_header_.rcv_stat_n & 0x00040000) >> 18);
+    msg_header_.rcv_stat.pos_sol_err  = ((msg_header_.rcv_stat_n & 0x00080000) >> 19);
 
     // Nible 5
-    msg_header.rcv_stat.pos_fixed  = ((msg_header.rcv_stat_n & 0x00100000) >> 20);
-    msg_header.rcv_stat.clk_st_err  = ((msg_header.rcv_stat_n & 0x00200000) >> 21);
-    msg_header.rcv_stat.clk_err  = ((msg_header.rcv_stat_n & 0x00400000) >> 22);
-    msg_header.rcv_stat.osc_ext  = ((msg_header.rcv_stat_n & 0x00800000) >> 23);
+    msg_header_.rcv_stat.pos_fixed  = ((msg_header_.rcv_stat_n & 0x00100000) >> 20);
+    msg_header_.rcv_stat.clk_st_err  = ((msg_header_.rcv_stat_n & 0x00200000) >> 21);
+    msg_header_.rcv_stat.clk_err  = ((msg_header_.rcv_stat_n & 0x00400000) >> 22);
+    msg_header_.rcv_stat.osc_ext  = ((msg_header_.rcv_stat_n & 0x00800000) >> 23);
 
     // Nible 7
-    msg_header.rcv_stat.soft_err  = ((msg_header.rcv_stat_n & 0x01000000) >> 24);
-    msg_header.rcv_stat.aux3_err  = ((msg_header.rcv_stat_n & 0x20000000) >> 29);
-    msg_header.rcv_stat.aux2_err  = ((msg_header.rcv_stat_n & 0x40000000) >> 30);
-    msg_header.rcv_stat.aux1_err  = ((msg_header.rcv_stat_n & 0x80000000) >> 31);
+    msg_header_.rcv_stat.soft_err  = ((msg_header_.rcv_stat_n & 0x01000000) >> 24);
+    msg_header_.rcv_stat.aux3_err  = ((msg_header_.rcv_stat_n & 0x20000000) >> 29);
+    msg_header_.rcv_stat.aux2_err  = ((msg_header_.rcv_stat_n & 0x40000000) >> 30);
+    msg_header_.rcv_stat.aux1_err  = ((msg_header_.rcv_stat_n & 0x80000000) >> 31);
 
-    msg_header.time_stat.time_stat = time_stat_;
+    msg_header_.time_stat.time_stat = time_stat_;
 
-    // ROS_INFO_STREAM("msg_id " << msg_header.msg_id << "\n" << 
-    //                 "msg len " << msg_header.msg_len << "\n" << 
-    //                 "seq " << msg_header.seq << "\n" << 
-    //                 "idle_t " << (int)msg_header.idle_t << "\n" << 
-    //                 "time_stat " << msg_header.time_stat.time_stat << "\n" << 
-    //                 "gps_week " << msg_header.gps_week << "\n" <<
-    //                 "gps_ms " << msg_header.gps_ms);
+    // ROS_INFO_STREAM("msg_id " << msg_header_.msg_id << "\n" << 
+    //                 "msg len " << msg_header_.msg_len << "\n" << 
+    //                 "seq " << msg_header_.seq << "\n" << 
+    //                 "idle_t " << (int)msg_header_.idle_t << "\n" << 
+    //                 "time_stat " << msg_header_.time_stat.time_stat << "\n" << 
+    //                 "gps_week_ " << msg_header_.gps_week_ << "\n" <<
+    //                 "gps_ms " << msg_header_.gps_ms);
     if(msg_id == BESTXYZ)
     {
         memcpy(&position_status_, &gps_data_[BXYZ_PSTAT], sizeof(uint16_t));
@@ -803,84 +804,84 @@ void GPS::decode(uint16_t msg_id)
     {
         memcpy(&number_satellites_, &gps_data_[SATXYZ_NSAT], sizeof(uint32_t));
         // ROS_INFO("Number of satellites %d", number_satellites_);
-        satellites.satellites.resize(number_satellites_);
+        satellites_.satellites.resize(number_satellites_);
 
         for(int i = 0; i < number_satellites_; ++i)
         {
             // PRN
-            memcpy(&satellites.satellites[i].prn_slot, &gps_data_[SATXYZ_PRN + i*SATXYZ_OFFSET], sizeof(uint32_t));
+            memcpy(&satellites_.satellites[i].prn_slot, &gps_data_[SATXYZ_PRN + i*SATXYZ_OFFSET], sizeof(uint32_t));
 
             // Satellite position
-            memcpy(&satellites.satellites[i].position.x, &gps_data_[SATXYZ_X + i*SATXYZ_OFFSET], sizeof(double));
-            memcpy(&satellites.satellites[i].position.y, &gps_data_[SATXYZ_Y + i*SATXYZ_OFFSET], sizeof(double));
-            memcpy(&satellites.satellites[i].position.z, &gps_data_[SATXYZ_Z + i*SATXYZ_OFFSET], sizeof(double));
+            memcpy(&satellites_.satellites[i].position.x, &gps_data_[SATXYZ_X + i*SATXYZ_OFFSET], sizeof(double));
+            memcpy(&satellites_.satellites[i].position.y, &gps_data_[SATXYZ_Y + i*SATXYZ_OFFSET], sizeof(double));
+            memcpy(&satellites_.satellites[i].position.z, &gps_data_[SATXYZ_Z + i*SATXYZ_OFFSET], sizeof(double));
 
             // Corrections
-            memcpy(&satellites.satellites[i].clk_corr, &gps_data_[SATXYZ_CLKCORR + i*SATXYZ_OFFSET], sizeof(double));
-            memcpy(&satellites.satellites[i].ion_corr, &gps_data_[SATXYZ_IONCORR + i*SATXYZ_OFFSET], sizeof(double));
-            memcpy(&satellites.satellites[i].trop_corr, &gps_data_[SATXYZ_TRPCORR + i*SATXYZ_OFFSET], sizeof(double));
+            memcpy(&satellites_.satellites[i].clk_corr, &gps_data_[SATXYZ_CLKCORR + i*SATXYZ_OFFSET], sizeof(double));
+            memcpy(&satellites_.satellites[i].ion_corr, &gps_data_[SATXYZ_IONCORR + i*SATXYZ_OFFSET], sizeof(double));
+            memcpy(&satellites_.satellites[i].trop_corr, &gps_data_[SATXYZ_TRPCORR + i*SATXYZ_OFFSET], sizeof(double));
         }
     }
     if(msg_id == TRACKSTAT)
     {
-        memcpy(&tracking.solution_status, &gps_data_[TRACKSTAT_SOLSTAT], sizeof(uint32_t));
-        memcpy(&tracking.position_type, &gps_data_[TRACKSTAT_POSTYPE], sizeof(uint32_t));
-        memcpy(&tracking.cutoff, &gps_data_[TRACKSTAT_CUTOFF], sizeof(float));
-        memcpy(&tracking.channels, &gps_data_[TRACKSTAT_CHAN], sizeof(int32_t));
-        // ROS_INFO("Channels = %d", tracking.channels);
-        tracking.channel.resize(tracking.channels);
+        memcpy(&tracking_.solution_status, &gps_data_[TRACKSTAT_SOLSTAT], sizeof(uint32_t));
+        memcpy(&tracking_.position_type, &gps_data_[TRACKSTAT_POSTYPE], sizeof(uint32_t));
+        memcpy(&tracking_.cutoff, &gps_data_[TRACKSTAT_CUTOFF], sizeof(float));
+        memcpy(&tracking_.channels, &gps_data_[TRACKSTAT_CHAN], sizeof(int32_t));
+        // ROS_INFO("Channels = %d", tracking_.channels);
+        tracking_.channel.resize(tracking_.channels);
 
-        for(int i = 0; i < tracking.channels; ++i)
+        for(int i = 0; i < tracking_.channels; ++i)
         {
-            memcpy(&tracking.channel[i].prn_slot, &gps_data_[TRACKSTAT_PRN + i*TRACKSTAT_OFFSET], sizeof(int16_t));
-            memcpy(&tracking.channel[i].ch_tr_status, &gps_data_[TRACKSTAT_TRKSTAT + i*TRACKSTAT_OFFSET], sizeof(uint32_t));
+            memcpy(&tracking_.channel[i].prn_slot, &gps_data_[TRACKSTAT_PRN + i*TRACKSTAT_OFFSET], sizeof(int16_t));
+            memcpy(&tracking_.channel[i].ch_tr_status, &gps_data_[TRACKSTAT_TRKSTAT + i*TRACKSTAT_OFFSET], sizeof(uint32_t));
 
-            memcpy(&tracking.channel[i].psr, &gps_data_[TRACKSTAT_PSR + i*TRACKSTAT_OFFSET], sizeof(double));
-            memcpy(&tracking.channel[i].doppler, &gps_data_[TRACKSTAT_DOPPLER + i*TRACKSTAT_OFFSET], sizeof(float));
+            memcpy(&tracking_.channel[i].psr, &gps_data_[TRACKSTAT_PSR + i*TRACKSTAT_OFFSET], sizeof(double));
+            memcpy(&tracking_.channel[i].doppler, &gps_data_[TRACKSTAT_DOPPLER + i*TRACKSTAT_OFFSET], sizeof(float));
 
-            memcpy(&tracking.channel[i].cn0, &gps_data_[TRACKSTAT_CNo + i*TRACKSTAT_OFFSET], sizeof(float));
-            memcpy(&tracking.channel[i].locktime, &gps_data_[TRACKSTAT_LOCKTIME + i*TRACKSTAT_OFFSET], sizeof(float));
+            memcpy(&tracking_.channel[i].cn0, &gps_data_[TRACKSTAT_CNo + i*TRACKSTAT_OFFSET], sizeof(float));
+            memcpy(&tracking_.channel[i].locktime, &gps_data_[TRACKSTAT_LOCKTIME + i*TRACKSTAT_OFFSET], sizeof(float));
 
-            memcpy(&tracking.channel[i].psr_res, &gps_data_[TRACKSTAT_PSRRES + i*TRACKSTAT_OFFSET], sizeof(float));
-            memcpy(&tracking.channel[i].psr_weight, &gps_data_[TRACKSTAT_PSRW + i*TRACKSTAT_OFFSET], sizeof(float));
+            memcpy(&tracking_.channel[i].psr_res, &gps_data_[TRACKSTAT_PSRRES + i*TRACKSTAT_OFFSET], sizeof(float));
+            memcpy(&tracking_.channel[i].psr_weight, &gps_data_[TRACKSTAT_PSRW + i*TRACKSTAT_OFFSET], sizeof(float));
 
-            tracking.channel[i].tracking_status.trck_state          = (tracking.channel[i].ch_tr_status & 0x00000001) |
-                                                                      (tracking.channel[i].ch_tr_status & 0x00000002) |
-                                                                      (tracking.channel[i].ch_tr_status & 0x00000004) |
-                                                                      (tracking.channel[i].ch_tr_status & 0x00000008) |
-                                                                      (tracking.channel[i].ch_tr_status & 0x00000010);
+            tracking_.channel[i].tracking_status.trck_state          = (tracking_.channel[i].ch_tr_status & 0x00000001) |
+                                                                       (tracking_.channel[i].ch_tr_status & 0x00000002) |
+                                                                       (tracking_.channel[i].ch_tr_status & 0x00000004) |
+                                                                       (tracking_.channel[i].ch_tr_status & 0x00000008) |
+                                                                       (tracking_.channel[i].ch_tr_status & 0x00000010);
 
-            tracking.channel[i].tracking_status.channel_number      = ((tracking.channel[i].ch_tr_status & 0x00000020)  |
-                                                                       (tracking.channel[i].ch_tr_status & 0x00000040)  |
-                                                                       (tracking.channel[i].ch_tr_status & 0x00000080)  |
-                                                                       (tracking.channel[i].ch_tr_status & 0x00000100)  |
-                                                                       (tracking.channel[i].ch_tr_status & 0x00000200)) >> 5;
+            tracking_.channel[i].tracking_status.channel_number      = ((tracking_.channel[i].ch_tr_status & 0x00000020)  |
+                                                                        (tracking_.channel[i].ch_tr_status & 0x00000040)  |
+                                                                        (tracking_.channel[i].ch_tr_status & 0x00000080)  |
+                                                                        (tracking_.channel[i].ch_tr_status & 0x00000100)  |
+                                                                        (tracking_.channel[i].ch_tr_status & 0x00000200)) >> 5;
 
-            tracking.channel[i].tracking_status.phase_lock          = ((tracking.channel[i].ch_tr_status & 0x00000400) >> 10);
-            tracking.channel[i].tracking_status.parity_known        = ((tracking.channel[i].ch_tr_status & 0x00000800) >> 11);
-            tracking.channel[i].tracking_status.code_lock           = ((tracking.channel[i].ch_tr_status & 0x00001000) >> 12);
+            tracking_.channel[i].tracking_status.phase_lock          = ((tracking_.channel[i].ch_tr_status & 0x00000400) >> 10);
+            tracking_.channel[i].tracking_status.parity_known        = ((tracking_.channel[i].ch_tr_status & 0x00000800) >> 11);
+            tracking_.channel[i].tracking_status.code_lock           = ((tracking_.channel[i].ch_tr_status & 0x00001000) >> 12);
 
-            tracking.channel[i].tracking_status.correlator_type     = ((tracking.channel[i].ch_tr_status & 0x00002000)  |
-                                                                       (tracking.channel[i].ch_tr_status & 0x00004000)  |
-                                                                       (tracking.channel[i].ch_tr_status & 0x00008000)) >> 13;
+            tracking_.channel[i].tracking_status.correlator_type     = ((tracking_.channel[i].ch_tr_status & 0x00002000)  |
+                                                                        (tracking_.channel[i].ch_tr_status & 0x00004000)  |
+                                                                        (tracking_.channel[i].ch_tr_status & 0x00008000)) >> 13;
 
-            tracking.channel[i].tracking_status.satellite_system    = ((tracking.channel[i].ch_tr_status & 0x00010000)  |
-                                                                       (tracking.channel[i].ch_tr_status & 0x00020000)  |
-                                                                       (tracking.channel[i].ch_tr_status & 0x00040000)) >> 16;
+            tracking_.channel[i].tracking_status.satellite_system    = ((tracking_.channel[i].ch_tr_status & 0x00010000)  |
+                                                                        (tracking_.channel[i].ch_tr_status & 0x00020000)  |
+                                                                        (tracking_.channel[i].ch_tr_status & 0x00040000)) >> 16;
 
-            tracking.channel[i].tracking_status.grouping            = ((tracking.channel[i].ch_tr_status & 0x00100000) >> 20);
+            tracking_.channel[i].tracking_status.grouping            = ((tracking_.channel[i].ch_tr_status & 0x00100000) >> 20);
 
-            tracking.channel[i].tracking_status.singal_type         = ((tracking.channel[i].ch_tr_status & 0x00200000)  |
-                                                                       (tracking.channel[i].ch_tr_status & 0x00400000)  |
-                                                                       (tracking.channel[i].ch_tr_status & 0x00800000)  |
-                                                                       (tracking.channel[i].ch_tr_status & 0x01000000)  |
-                                                                       (tracking.channel[i].ch_tr_status & 0x02000000)) >> 21;
+            tracking_.channel[i].tracking_status.singal_type         = ((tracking_.channel[i].ch_tr_status & 0x00200000)  |
+                                                                        (tracking_.channel[i].ch_tr_status & 0x00400000)  |
+                                                                        (tracking_.channel[i].ch_tr_status & 0x00800000)  |
+                                                                        (tracking_.channel[i].ch_tr_status & 0x01000000)  |
+                                                                        (tracking_.channel[i].ch_tr_status & 0x02000000)) >> 21;
 
-            tracking.channel[i].tracking_status.fec                 = ((tracking.channel[i].ch_tr_status & 0x04000000) >> 26);
-            tracking.channel[i].tracking_status.primary_l1          = ((tracking.channel[i].ch_tr_status & 0x08000000) >> 27);
-            tracking.channel[i].tracking_status.half_cycle_added    = ((tracking.channel[i].ch_tr_status & 0x10000000) >> 28);
-            tracking.channel[i].tracking_status.prn_lock            = ((tracking.channel[i].ch_tr_status & 0x40000000) >> 30);
-            tracking.channel[i].tracking_status.channel_assignment  = ((tracking.channel[i].ch_tr_status & 0x80000000) >> 31);
+            tracking_.channel[i].tracking_status.fec                 = ((tracking_.channel[i].ch_tr_status & 0x04000000) >> 26);
+            tracking_.channel[i].tracking_status.primary_l1          = ((tracking_.channel[i].ch_tr_status & 0x08000000) >> 27);
+            tracking_.channel[i].tracking_status.half_cycle_added    = ((tracking_.channel[i].ch_tr_status & 0x10000000) >> 28);
+            tracking_.channel[i].tracking_status.prn_lock            = ((tracking_.channel[i].ch_tr_status & 0x40000000) >> 30);
+            tracking_.channel[i].tracking_status.channel_assignment  = ((tracking_.channel[i].ch_tr_status & 0x80000000) >> 31);
             // ROS_INFO("Satellite: %d", prn_);
             // ROS_INFO("with Pseudorange: %f", psr_);
             // ROS_INFO("with Doppler: %f", doppler_);
@@ -891,63 +892,63 @@ void GPS::decode(uint16_t msg_id)
     }
     if(msg_id == RANGE)
     {
-        memcpy(&pseudorange.obs, &gps_data_[RANGE_OBS], sizeof(uint16_t));
-        ROS_INFO("Number of observations: %d", pseudorange.obs);
-        pseudorange.ranges.resize(pseudorange.obs);
+        memcpy(&pseudorange_.obs, &gps_data_[RANGE_OBS], sizeof(uint16_t));
+        ROS_INFO("Number of observations: %d", pseudorange_.obs);
+        pseudorange_.ranges.resize(pseudorange_.obs);
 
-        for(int i = 0; i < pseudorange.obs; ++i)
+        for(int i = 0; i < pseudorange_.obs; ++i)
         {
-            memcpy(&pseudorange.ranges[i].prn_slot, &gps_data_[RANGE_PRN + i*RANGE_OFFSET], sizeof(uint16_t));
+            memcpy(&pseudorange_.ranges[i].prn_slot, &gps_data_[RANGE_PRN + i*RANGE_OFFSET], sizeof(uint16_t));
 
-            memcpy(&pseudorange.ranges[i].psr, &gps_data_[RANGE_PSR + i*RANGE_OFFSET], sizeof(double));
-            memcpy(&pseudorange.ranges[i].psr_std, &gps_data_[RANGE_PSR_STD + i*RANGE_OFFSET], sizeof(float));
+            memcpy(&pseudorange_.ranges[i].psr, &gps_data_[RANGE_PSR + i*RANGE_OFFSET], sizeof(double));
+            memcpy(&pseudorange_.ranges[i].psr_std, &gps_data_[RANGE_PSR_STD + i*RANGE_OFFSET], sizeof(float));
 
-            memcpy(&pseudorange.ranges[i].adr, &gps_data_[RANGE_ADR + i*RANGE_OFFSET], sizeof(double));
-            memcpy(&pseudorange.ranges[i].adr_std, &gps_data_[RANGE_ADR_STD + i*RANGE_OFFSET], sizeof(float));
+            memcpy(&pseudorange_.ranges[i].adr, &gps_data_[RANGE_ADR + i*RANGE_OFFSET], sizeof(double));
+            memcpy(&pseudorange_.ranges[i].adr_std, &gps_data_[RANGE_ADR_STD + i*RANGE_OFFSET], sizeof(float));
 
-            memcpy(&pseudorange.ranges[i].doppler, &gps_data_[RANGE_DOPPLER + i*RANGE_OFFSET], sizeof(float));
+            memcpy(&pseudorange_.ranges[i].doppler, &gps_data_[RANGE_DOPPLER + i*RANGE_OFFSET], sizeof(float));
 
-            memcpy(&pseudorange.ranges[i].c_no, &gps_data_[RANGE_CNo + i*RANGE_OFFSET], sizeof(float));
-            memcpy(&pseudorange.ranges[i].locktime, &gps_data_[RANGE_LOCKTIME + i*RANGE_OFFSET], sizeof(float));
-            memcpy(&pseudorange.ranges[i].ch_tr_status, &gps_data_[RANGE_TRKSTART + i*RANGE_OFFSET], sizeof(uint32_t));
+            memcpy(&pseudorange_.ranges[i].c_no, &gps_data_[RANGE_CNo + i*RANGE_OFFSET], sizeof(float));
+            memcpy(&pseudorange_.ranges[i].locktime, &gps_data_[RANGE_LOCKTIME + i*RANGE_OFFSET], sizeof(float));
+            memcpy(&pseudorange_.ranges[i].ch_tr_status, &gps_data_[RANGE_TRKSTART + i*RANGE_OFFSET], sizeof(uint32_t));
 
-            pseudorange.ranges[i].tracking_status.trck_state          = (pseudorange.ranges[i].ch_tr_status & 0x00000001) |
-                                                                        (pseudorange.ranges[i].ch_tr_status & 0x00000002) |
-                                                                        (pseudorange.ranges[i].ch_tr_status & 0x00000004) |
-                                                                        (pseudorange.ranges[i].ch_tr_status & 0x00000008) |
-                                                                        (pseudorange.ranges[i].ch_tr_status & 0x00000010);
+            pseudorange_.ranges[i].tracking_status.trck_state          = (pseudorange_.ranges[i].ch_tr_status & 0x00000001) |
+                                                                         (pseudorange_.ranges[i].ch_tr_status & 0x00000002) |
+                                                                         (pseudorange_.ranges[i].ch_tr_status & 0x00000004) |
+                                                                         (pseudorange_.ranges[i].ch_tr_status & 0x00000008) |
+                                                                         (pseudorange_.ranges[i].ch_tr_status & 0x00000010);
 
-            pseudorange.ranges[i].tracking_status.channel_number      = ((pseudorange.ranges[i].ch_tr_status & 0x00000020)  |
-                                                                         (pseudorange.ranges[i].ch_tr_status & 0x00000040)  |
-                                                                         (pseudorange.ranges[i].ch_tr_status & 0x00000080)  |
-                                                                         (pseudorange.ranges[i].ch_tr_status & 0x00000100)  |
-                                                                         (pseudorange.ranges[i].ch_tr_status & 0x00000200)) >> 5;
+            pseudorange_.ranges[i].tracking_status.channel_number      = ((pseudorange_.ranges[i].ch_tr_status & 0x00000020)  |
+                                                                          (pseudorange_.ranges[i].ch_tr_status & 0x00000040)  |
+                                                                          (pseudorange_.ranges[i].ch_tr_status & 0x00000080)  |
+                                                                          (pseudorange_.ranges[i].ch_tr_status & 0x00000100)  |
+                                                                          (pseudorange_.ranges[i].ch_tr_status & 0x00000200)) >> 5;
 
-            pseudorange.ranges[i].tracking_status.phase_lock          = ((pseudorange.ranges[i].ch_tr_status & 0x00000400) >> 10);
-            pseudorange.ranges[i].tracking_status.parity_known        = ((pseudorange.ranges[i].ch_tr_status & 0x00000800) >> 11);
-            pseudorange.ranges[i].tracking_status.code_lock           = ((pseudorange.ranges[i].ch_tr_status & 0x00001000) >> 12);
+            pseudorange_.ranges[i].tracking_status.phase_lock          = ((pseudorange_.ranges[i].ch_tr_status & 0x00000400) >> 10);
+            pseudorange_.ranges[i].tracking_status.parity_known        = ((pseudorange_.ranges[i].ch_tr_status & 0x00000800) >> 11);
+            pseudorange_.ranges[i].tracking_status.code_lock           = ((pseudorange_.ranges[i].ch_tr_status & 0x00001000) >> 12);
 
-            pseudorange.ranges[i].tracking_status.correlator_type     = ((pseudorange.ranges[i].ch_tr_status & 0x00002000)  |
-                                                                         (pseudorange.ranges[i].ch_tr_status & 0x00004000)  |
-                                                                         (pseudorange.ranges[i].ch_tr_status & 0x00008000)) >> 13;
+            pseudorange_.ranges[i].tracking_status.correlator_type     = ((pseudorange_.ranges[i].ch_tr_status & 0x00002000)  |
+                                                                          (pseudorange_.ranges[i].ch_tr_status & 0x00004000)  |
+                                                                          (pseudorange_.ranges[i].ch_tr_status & 0x00008000)) >> 13;
 
-            pseudorange.ranges[i].tracking_status.satellite_system    = ((pseudorange.ranges[i].ch_tr_status & 0x00010000)  |
-                                                                         (pseudorange.ranges[i].ch_tr_status & 0x00020000)  |
-                                                                         (pseudorange.ranges[i].ch_tr_status & 0x00040000)) >> 16;
+            pseudorange_.ranges[i].tracking_status.satellite_system    = ((pseudorange_.ranges[i].ch_tr_status & 0x00010000)  |
+                                                                          (pseudorange_.ranges[i].ch_tr_status & 0x00020000)  |
+                                                                          (pseudorange_.ranges[i].ch_tr_status & 0x00040000)) >> 16;
 
-            pseudorange.ranges[i].tracking_status.grouping            = ((pseudorange.ranges[i].ch_tr_status & 0x00100000) >> 20);
+            pseudorange_.ranges[i].tracking_status.grouping            = ((pseudorange_.ranges[i].ch_tr_status & 0x00100000) >> 20);
 
-            pseudorange.ranges[i].tracking_status.singal_type         = ((pseudorange.ranges[i].ch_tr_status & 0x00200000)  |
-                                                                         (pseudorange.ranges[i].ch_tr_status & 0x00400000)  |
-                                                                         (pseudorange.ranges[i].ch_tr_status & 0x00800000)  |
-                                                                         (pseudorange.ranges[i].ch_tr_status & 0x01000000)  |
-                                                                         (pseudorange.ranges[i].ch_tr_status & 0x02000000)) >> 21;
+            pseudorange_.ranges[i].tracking_status.singal_type         = ((pseudorange_.ranges[i].ch_tr_status & 0x00200000)  |
+                                                                          (pseudorange_.ranges[i].ch_tr_status & 0x00400000)  |
+                                                                          (pseudorange_.ranges[i].ch_tr_status & 0x00800000)  |
+                                                                          (pseudorange_.ranges[i].ch_tr_status & 0x01000000)  |
+                                                                          (pseudorange_.ranges[i].ch_tr_status & 0x02000000)) >> 21;
 
-            pseudorange.ranges[i].tracking_status.fec                 = ((pseudorange.ranges[i].ch_tr_status & 0x04000000) >> 26);
-            pseudorange.ranges[i].tracking_status.primary_l1          = ((pseudorange.ranges[i].ch_tr_status & 0x08000000) >> 27);
-            pseudorange.ranges[i].tracking_status.half_cycle_added    = ((pseudorange.ranges[i].ch_tr_status & 0x10000000) >> 28);
-            pseudorange.ranges[i].tracking_status.prn_lock            = ((pseudorange.ranges[i].ch_tr_status & 0x40000000) >> 30);
-            pseudorange.ranges[i].tracking_status.channel_assignment  = ((pseudorange.ranges[i].ch_tr_status & 0x80000000) >> 31);
+            pseudorange_.ranges[i].tracking_status.fec                 = ((pseudorange_.ranges[i].ch_tr_status & 0x04000000) >> 26);
+            pseudorange_.ranges[i].tracking_status.primary_l1          = ((pseudorange_.ranges[i].ch_tr_status & 0x08000000) >> 27);
+            pseudorange_.ranges[i].tracking_status.half_cycle_added    = ((pseudorange_.ranges[i].ch_tr_status & 0x10000000) >> 28);
+            pseudorange_.ranges[i].tracking_status.prn_lock            = ((pseudorange_.ranges[i].ch_tr_status & 0x40000000) >> 30);
+            pseudorange_.ranges[i].tracking_status.channel_assignment  = ((pseudorange_.ranges[i].ch_tr_status & 0x80000000) >> 31);
         }
     }
 }
@@ -976,7 +977,7 @@ void GPS::close()
 {
     int err;
 
-    if((err = serialcom_close(&gps_SerialPortConfig)) != SERIALCOM_SUCCESS)
+    if((err = serialcom_close(&gps_SerialPortConfig_)) != SERIALCOM_SUCCESS)
     {
         ROS_ERROR_STREAM("serialcom_close failed " << err);
         throwSerialComException(err);
@@ -995,14 +996,14 @@ void GPS::configure()
     command(buffer);
     // command("COM COM2,115200,N,8,1,N,OFF,ON");
 
-    if((err = serialcom_close(&gps_SerialPortConfig)) != SERIALCOM_SUCCESS)
+    if((err = serialcom_close(&gps_SerialPortConfig_)) != SERIALCOM_SUCCESS)
     {
         ROS_ERROR_STREAM("serialcom_close failed " << err);
         throwSerialComException(err);
     }
 
     // Reconnecting at 9600 bps
-    if((err = serialcom_init(&gps_SerialPortConfig, 1, (char*)serial_port_.c_str(), BPS)) != SERIALCOM_SUCCESS)
+    if((err = serialcom_init(&gps_SerialPortConfig_, 1, (char*)serial_port_.c_str(), BPS)) != SERIALCOM_SUCCESS)
     {
         ROS_ERROR_STREAM("serialcom_init failed " << err);
         throwSerialComException(err);
@@ -1015,7 +1016,7 @@ void GPS::configure()
     }
     else
     {
-        sprintf(buffer, "SETAPPROXTIME %lu %f", gps_week_1024, gps_secs);
+        sprintf(buffer, "SETAPPROXTIME %lu %f", gps_week_1024_, gps_secs_);
         command(buffer);
     }
 
@@ -1027,10 +1028,10 @@ void GPS::configure()
 void GPS::receiveDataFromGPS(novatel_gps::LogAll* output_logall, novatel_gps::GpsXYZ *output_xyz)
 {
     readDataFromReceiver();
-    output_logall->msg_header = this->msg_header;
-    output_logall->range_log = pseudorange;
-    output_logall->sat_log = satellites;
-    output_logall->track_log = tracking;
+    output_logall->msg_header = this->msg_header_;
+    output_logall->range_log = pseudorange_;
+    output_logall->sat_log = satellites_;
+    output_logall->track_log = tracking_;
 
     output_xyz->position.position.x = x_;
     output_xyz->position.position.y = y_;
@@ -1140,16 +1141,16 @@ void GPS::command(const char* command)
     ROS_INFO("Sending command: %s", command);
     for(i = 0; i < len; i++)
     {
-        serialcom_sendbyte(&gps_SerialPortConfig, (unsigned char*) &command[i]);
+        serialcom_sendbyte(&gps_SerialPortConfig_, (unsigned char*) &command[i]);
         std::this_thread::sleep_for( std::chrono::milliseconds(5) );
     }
 
     // Sending Carriage Return character
-    serialcom_sendbyte(&gps_SerialPortConfig, (unsigned char*) "\r");
+    serialcom_sendbyte(&gps_SerialPortConfig_, (unsigned char*) "\r");
     std::this_thread::sleep_for( std::chrono::milliseconds(5) );
 
     // Sending Line Feed character
-    serialcom_sendbyte(&gps_SerialPortConfig, (unsigned char*) "\n");
+    serialcom_sendbyte(&gps_SerialPortConfig_, (unsigned char*) "\n");
     std::this_thread::sleep_for( std::chrono::milliseconds(5) );
 }
 
@@ -1174,11 +1175,11 @@ int GPS::getApproxTime()
 
     // Offset to GPS time and calculate weeks and seconds
     gps_time = cpu_secs - time_diff;
-    gps_week = gps_time / secs_in_week;
-    gps_week_1024 = gps_week % 1024;
-    gps_secs = gps_time % secs_in_week;
+    gps_week_ = gps_time / secs_in_week;
+    gps_week_1024_ = gps_week_ % 1024;
+    gps_secs_ = gps_time % secs_in_week;
 
-    if((gps_week != 0) && (gps_secs != 0))
+    if((gps_week_ != 0) && (gps_secs_ != 0))
         return 1;
     else
         return 0;
