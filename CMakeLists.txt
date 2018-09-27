@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(novatel_gps)
 
 find_package(catkin REQUIRED COMPONENTS
@@ -51,8 +51,6 @@ ExternalProject_Get_Property(serialcom binary_dir)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/serialcom-src/include)
 # message(${install_dir})
 
-add_definitions(-std=c++11 -g)
-
 ###################################
 ## catkin specific configuration ##
 ###################################
@@ -78,6 +76,7 @@ add_executable(gps_node src/gps_node.cpp src/novatel_gps.cpp)
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 add_dependencies(gps_node serialcom ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_compile_options(gps_node PRIVATE -g -std=c++11)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(gps_node
